@@ -1,0 +1,44 @@
+{
+	"name": "create-start-ui",
+	"description": "Scaffold a new Start-UI project",
+	"version": "0.0.1",
+	"license": "MIT",
+	"bin": {
+		"create-start-ui": "index.js",
+		"create-sui": "index.js"
+	},
+	"author": {
+		"name": "Renan Decamps",
+		"email": "renan.decamps@gmail.com",
+		"url": "https://renandecamps.com"
+	},
+	"keywords": [
+		"create-start-ui",
+		"start-ui"
+	],
+	"files": [
+		"index.js",
+		"utils"
+	],
+	"scripts": {
+		"format": "prettier --write \"./**/*.{js,json}\""
+	},
+	"dependencies": {
+		"chalk": "4.1.2",
+		"cli-alerts": "1.2.2",
+		"cli-handle-error": "4.4.0",
+		"cli-handle-unhandled": "1.1.1",
+		"cli-meow-help": "2.0.2",
+		"cli-welcome": "2.2.2",
+		"fs-extra": "10.0.0",
+		"git-clone": "0.1.0",
+		"meow": "10.1.1",
+		"ora": "6.0.0"
+	},
+	"devDependencies": {
+		"prettier": "2.3.2"
+	},
+	"engines": {
+		"node": ">=14"
+	}
+}
