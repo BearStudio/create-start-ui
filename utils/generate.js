@@ -14,13 +14,13 @@ module.exports = async ({ outDirPath }) => {
   try {
     await fs.mkdir(outDirPath);
   } catch (errorCreatingProjectDir) {
-    ora.fail(
-      chalk.red(`Unable to create the folder under ${chalk.dim(outDirPath)}.`),
+    spinner.fail(
+      chalk.red(`Unable to create the folder under ${chalk.dim(outDirPath)}`),
     );
     process.exit(1);
   }
 
-  fs.process.chdir(outDirPath);
+  process.chdir(outDirPath);
   // await execa('npm', ['install']);
   spinner.succeed(`${chalk.green('DEPENDENCIES')} installed!`);
 };
