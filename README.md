@@ -1,4 +1,4 @@
-# 🚀 Start UI [cli]
+# Crearte a 🚀 Start UI project
 
 ## 🚧 Work In Progress repository
 
