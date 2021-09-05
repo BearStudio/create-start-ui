@@ -5,11 +5,11 @@ const init = require('./utils/init');
 const cli = require('./utils/cli');
 const log = require('./utils/log');
 const chalk = require('chalk');
-const generate = require('./utils/generate');
+const { generate, targets } = require('./utils/generate');
 
 const input = cli.input;
 const flags = cli.flags;
-const { debug, target } = flags;
+const { debug } = flags;
 
 const errorLog = chalk.bgRed;
 
@@ -18,13 +18,13 @@ const errorLog = chalk.bgRed;
   input.includes('help') && cli.showHelp(0);
   debug && log(flags);
 
-  // Check that the target is a valid one
-  const validTargetNames = Object.keys(generate.targets);
-  if (!validTargetNames.includes(target)) {
-    console.log(errorLog(`Invalid target. Valid targets are:`));
-    validTargetNames.forEach((targetName) => console.log(` - ${targetName}`));
+  if (flags.web && flags.native) {
+    console.log(errorLog('Only one target cab be choose.'));
     process.exit(1);
   }
+
+  if (flags.native) target = 'native';
+  else target = 'web';
 
   // Get the project name (should be the first argument)
   const [projectName] = input;
@@ -34,5 +34,5 @@ const errorLog = chalk.bgRed;
   }
 
   const projectDirectory = path.resolve(process.cwd(), projectName);
-  await generate({ outDirPath: projectDirectory });
+  await generate({ outDirPath: projectDirectory, target });
 })();
