@@ -24,6 +24,7 @@
 		"format": "prettier --write \"./**/*.{js,json}\""
 	},
 	"dependencies": {
+		"axios": "0.21.1",
 		"chalk": "4.1.2",
 		"cli-alerts": "1.2.2",
 		"cli-handle-error": "4.4.0",

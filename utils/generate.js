@@ -2,6 +2,11 @@ const ora = require('ora');
 const fs = require('fs-extra');
 const chalk = require('chalk');
 
+export const targets = {
+  web: 'https://github.com/BearStudio/start-ui-web.git',
+  native: 'https://github.com/BearStudio/start-ui-native.git',
+};
+
 const spinner = ora({ text: '' });
 module.exports = async ({ outDirPath }) => {
   spinner.start(

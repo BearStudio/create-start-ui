@@ -11,11 +11,6 @@ const input = cli.input;
 const flags = cli.flags;
 const { debug, target } = flags;
 
-const targets = {
-  web: 'git@github.com:BearStudio/start-ui.git',
-  native: 'git@github.com:BearStudio/start-ui-native.git',
-};
-
 const errorLog = chalk.bgRed;
 
 (async () => {
@@ -24,7 +19,7 @@ const errorLog = chalk.bgRed;
   debug && log(flags);
 
   // Check that the target is a valid one
-  const validTargetNames = Object.keys(targets);
+  const validTargetNames = Object.keys(generate.targets);
   if (!validTargetNames.includes(target)) {
     console.log(errorLog(`Invalid target. Valid targets are:`));
     validTargetNames.forEach((targetName) => console.log(` - ${targetName}`));
