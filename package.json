@@ -4,8 +4,7 @@
 	"version": "0.0.2",
 	"license": "MIT",
 	"bin": {
-		"create-start-ui": "index.js",
-		"create-sui": "index.js"
+		"create-start-ui": "index.js"
 	},
 	"author": {
 		"name": "Renan Decamps",
