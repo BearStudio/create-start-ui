@@ -19,7 +19,7 @@ const errorLog = chalk.bgRed;
   debug && log(flags);
 
   if (flags.web && flags.native) {
-    console.log(errorLog('Only one target cab be choose.'));
+    console.log(errorLog('Only one target can be chosen.'));
     process.exit(1);
   }
 
