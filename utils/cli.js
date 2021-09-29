@@ -1,38 +1,70 @@
 const meow = require('meow');
-const meowHelp = require('cli-meow-help');
+const chalk = require('chalk');
+const terminalLink = require('terminal-link');
 
 const flags = {
   version: {
     type: 'boolean',
     alias: 'v',
-    desc: 'Print CLI version',
   },
   web: {
     type: 'boolean',
-    desc: 'Create a new start-ui-web project',
     default: false,
   },
   native: {
     type: 'boolean',
-    desc: 'Create a new start-ui-native project',
+    default: false,
+  },
+  gitInit: {
+    type: 'boolean',
+    default: true,
+  },
+  help: {
+    type: 'boolean',
+    alias: ['h'],
     default: false,
   },
 };
 
-const commands = {
-  help: { desc: `Print help info` },
-};
+const bold = chalk.bold;
+const startUiNativeLink = terminalLink(
+  'StartUI [Native]',
+  'https://github.com/BearStudio/start-ui-native',
+  { fallback: () => 'StartUI [Native]' }
+);
+const startUiWebLink = terminalLink(
+  'StartUI [Web]',
+  'https://github.com/BearStudio/start-ui-web',
+  { fallback: () => 'StartUI [Web]' }
+);
+const helpText = `
+  ${bold('Usage')}
+    $ create-start-ui <target> <projectPath>
 
-const helpText = meowHelp({
-  name: `create-start-ui`,
-  flags,
-  commands,
-});
+  ${bold('Options')}
+    -h, --help              Show this help
+    -v, --version           Display CLI version
+    --web ${bold.underline(
+      'PROJECT_PATH'
+    )}      Scaffold a brand new ${startUiWebLink} project
+    --native ${bold.underline(
+      'PROJECT_PATH'
+    )}   Scaffold a brand new ${startUiNativeLink} project
+    --no-git-init           Ignore ${chalk.dim('`git init`')} step
+
+  ${bold('Examples')}
+    ${chalk.cyan.bold('Create a new web project')}
+    $ ${chalk.dim('create-start-ui --web my-web-project')}
+
+    ${chalk.cyan.bold('Skip git repo initialization')}
+    $ ${chalk.dim('create-start-ui --web --no-git-init my-web-project')}
+`;
 
 const options = {
   inferType: true,
   description: false,
   hardRejection: false,
+  autoHelp: false,
   flags,
 };
 

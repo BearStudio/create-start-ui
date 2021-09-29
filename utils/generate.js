@@ -7,6 +7,9 @@ const ora = require('ora');
 const path = require('path');
 const tempy = require('tempy');
 
+const { flags } = require('./cli');
+const { gitInit } = flags;
+
 const { debug } = require('./debug');
 
 const targets = {
@@ -68,8 +71,12 @@ const generate = async ({ projectName, outDirPath, target }) => {
   }
 
   process.chdir(outDirPath);
-  spinner.text = 'Initializing empty repository...';
-  await execa('git', ['init']);
+
+  if (gitInit) {
+    spinner.text = 'Initializing empty repository...';
+    await execa('git', ['init']);
+  }
+
   spinner.text = 'Installing dependencies...';
   await execa('yarn', ['install']);
 
