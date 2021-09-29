@@ -5,7 +5,7 @@ const init = require('./utils/init');
 const cli = require('./utils/cli');
 const log = require('./utils/log');
 const chalk = require('chalk');
-const { generate, targets } = require('./utils/generate');
+const { generate } = require('./utils/generate');
 
 const input = cli.input;
 const flags = cli.flags;
@@ -23,6 +23,7 @@ const errorLog = chalk.bgRed;
     process.exit(1);
   }
 
+  let target = null;
   if (flags.native) target = 'native';
   else target = 'web';
 
@@ -34,5 +35,5 @@ const errorLog = chalk.bgRed;
   }
 
   const projectDirectory = path.resolve(process.cwd(), projectName);
-  await generate({ outDirPath: projectDirectory, target });
+  await generate({ projectName, outDirPath: projectDirectory, target });
 })();

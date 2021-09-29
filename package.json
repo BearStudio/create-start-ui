@@ -24,7 +24,9 @@
 		"utils"
 	],
 	"scripts": {
-		"format": "prettier --write \"./**/*.{js,json}\""
+		"prepare": "husky install",
+		"pretty": "prettier -w .",
+		"lint": "eslint . --fix"
 	},
 	"dependencies": {
 		"adm-zip": "0.5.5",
@@ -43,7 +45,16 @@
 		"tempy": "1.0.1"
 	},
 	"devDependencies": {
+		"@trivago/prettier-plugin-sort-imports": "2.0.4",
+		"@types/node": "16.10.1",
+		"eslint": "7.32.0",
+		"husky": "7.0.2",
+		"lint-staged": "11.1.2",
 		"prettier": "2.3.2"
+	},
+	"lint-staged": {
+		"*.{js,json}": "prettier --write",
+		"*.{js}": "eslint --cache --fix"
 	},
 	"engines": {
 		"node": ">=14"

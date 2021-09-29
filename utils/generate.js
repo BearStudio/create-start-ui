@@ -33,13 +33,9 @@ const downloadFile = async (url) => {
 };
 
 const spinner = ora({ text: '' });
-const generate = async ({ outDirPath, target }) => {
+const generate = async ({ projectName, outDirPath, target }) => {
   const targetInfos = targets[target];
-  spinner.start(
-    `${chalk.green('DEPENDENCIES')} installing…\n\n${chalk.dim(
-      'It may take moment…',
-    )}`,
-  );
+  spinner.start('Downloading template...');
 
   // Download zip
   let tempFilePath = null;
@@ -49,12 +45,13 @@ const generate = async ({ outDirPath, target }) => {
     debug('Cannot download template from repository', errorDownloadingTemplate);
     spinner.fail(
       chalk.red(
-        'Cannot download template from repository. Make sure that your connection is ok.',
-      ),
+        'Cannot download template from repository. Make sure that your connection is ok.'
+      )
     );
     process.exit(1);
   }
 
+  spinner.text = `Extracting template into ${outDirPath}`;
   const zip = new AdmZip(tempFilePath);
   const tmpDir = tempy.directory();
   try {
@@ -63,13 +60,29 @@ const generate = async ({ outDirPath, target }) => {
   } catch (extractZipError) {
     debug('An error occured while unziping template', extractZipError);
     spinner.fail(chalk.red('An error occured while unziping template.'));
+    console.log(
+      `Maybe this folder already exists: ${chalk.grey.underline(outDirPath)}`
+    );
+    console.log('If this is the case, try removing it.');
     process.exit(1);
   }
 
   process.chdir(outDirPath);
-  await execa.sync('yarn', ['install']);
+  spinner.text = 'Initializing empty repository...';
+  await execa('git', ['init']);
+  spinner.text = 'Installing dependencies...';
+  await execa('yarn', ['install']);
 
-  spinner.succeed(`${chalk.green('DEPENDENCIES')} installed!`);
+  spinner.succeed(
+    `${chalk.green(' Project created and dependencies installed! ')}`
+  );
+  console.log(`Created ${projectName} at ${outDirPath}`);
+  console.log('');
+  console.log('You can now run these commands to start using it:');
+  console.log('');
+  console.log(`  ${chalk.cyan(`cd ${chalk.white(projectName)}`)}`);
+  console.log(`  ${chalk.cyan('yarn dev')}`);
+  console.log('');
 };
 
 module.exports = {
