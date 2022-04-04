@@ -1,10 +1,10 @@
-const AdmZip = require('adm-zip');
+const tar = require('tar');
 const { default: axios } = require('axios');
 const chalk = require('chalk');
 const execa = require('execa');
 const fs = require('fs-extra');
 const ora = require('ora');
-const path = require('path');
+const path = require('node:path');
 const tempy = require('tempy');
 
 const { flags } = require('./cli');
@@ -14,11 +14,11 @@ const { debug } = require('./debug');
 
 const targets = {
   web: {
-    url: 'https://github.com/BearStudio/start-ui-web/archive/refs/heads/master.zip',
+    url: 'https://github.com/BearStudio/start-ui-web/archive/refs/heads/master.tar.gz',
     rootFolder: 'start-ui-web-master',
   },
   native: {
-    url: 'https://github.com/BearStudio/start-ui-native/archive/refs/heads/main.zip',
+    url: 'https://github.com/BearStudio/start-ui-native/archive/refs/heads/main.tar.gz',
     rootFolder: 'start-ui-native-main',
   },
 };
@@ -55,10 +55,11 @@ const generate = async ({ projectName, outDirPath, target }) => {
   }
 
   spinner.text = `Extracting template into ${outDirPath}`;
-  const zip = new AdmZip(tempFilePath);
+
   const tmpDir = tempy.directory();
+
   try {
-    zip.extractEntryTo(`${targetInfos.rootFolder}/`, tmpDir, true, true);
+    await tar.extract({ file: tempFilePath, cwd: tmpDir });
     await fs.rename(path.join(tmpDir, targetInfos.rootFolder), outDirPath);
   } catch (extractZipError) {
     debug('An error occured while unziping template', extractZipError);

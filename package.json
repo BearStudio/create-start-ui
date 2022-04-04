@@ -29,7 +29,6 @@
     "lint": "eslint . --fix"
   },
   "dependencies": {
-    "adm-zip": "0.5.5",
     "axios": "0.21.1",
     "chalk": "4.1.2",
     "cli-alerts": "1.2.2",
@@ -39,6 +38,7 @@
     "fs-extra": "10.0.0",
     "meow": "9.0.0",
     "ora": "5.4.1",
+    "tar": "6.1.11",
     "tempy": "1.0.1",
     "terminal-link": "2.1.1"
   },
