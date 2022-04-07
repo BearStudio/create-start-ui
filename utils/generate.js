@@ -67,7 +67,7 @@ const generate = async ({ projectName, outDirPath, target }) => {
       extractArchiveError
     );
     spinner.fail(
-      chalk.red('An error occured while cting the template archive.')
+      chalk.red('An error occured while extracting the template archive.')
     );
     console.log(
       `This folder may already exists: ${chalk.grey.underline(outDirPath)}`
