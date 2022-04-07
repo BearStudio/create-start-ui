@@ -1,10 +1,10 @@
-const AdmZip = require('adm-zip');
+const tar = require('tar');
 const { default: axios } = require('axios');
 const chalk = require('chalk');
 const execa = require('execa');
 const fs = require('fs-extra');
 const ora = require('ora');
-const path = require('path');
+const path = require('node:path');
 const tempy = require('tempy');
 
 const { flags } = require('./cli');
@@ -14,11 +14,11 @@ const { debug } = require('./debug');
 
 const targets = {
   web: {
-    url: 'https://github.com/BearStudio/start-ui-web/archive/refs/heads/master.zip',
+    url: 'https://github.com/BearStudio/start-ui-web/archive/refs/heads/master.tar.gz',
     rootFolder: 'start-ui-web-master',
   },
   native: {
-    url: 'https://github.com/BearStudio/start-ui-native/archive/refs/heads/main.zip',
+    url: 'https://github.com/BearStudio/start-ui-native/archive/refs/heads/main.tar.gz',
     rootFolder: 'start-ui-native-main',
   },
 };
@@ -55,19 +55,43 @@ const generate = async ({ projectName, outDirPath, target }) => {
   }
 
   spinner.text = `Extracting template into ${outDirPath}`;
-  const zip = new AdmZip(tempFilePath);
+
   const tmpDir = tempy.directory();
+
   try {
-    zip.extractEntryTo(`${targetInfos.rootFolder}/`, tmpDir, true, true);
-    await fs.rename(path.join(tmpDir, targetInfos.rootFolder), outDirPath);
-  } catch (extractZipError) {
-    debug('An error occured while unziping template', extractZipError);
-    spinner.fail(chalk.red('An error occured while unziping template.'));
+    await tar.extract({ file: tempFilePath, cwd: tmpDir });
+    debug('Template extracted');
+  } catch (extractArchiveError) {
+    debug(
+      'An error occured while extracting the template archive.',
+      extractArchiveError
+    );
+    spinner.fail(
+      chalk.red('An error occured while extracting the template archive.')
+    );
     console.log(
-      `Maybe this folder already exists: ${chalk.grey.underline(outDirPath)}`
+      `This folder may already exists: ${chalk.grey.underline(outDirPath)}`
     );
     console.log('If this is the case, try removing it.');
-    process.exit(1);
+    process.exit(2);
+  }
+
+  const tmpTemplateFolder = path.join(tmpDir, targetInfos.rootFolder);
+  try {
+    try {
+      await fs.rename(tmpTemplateFolder, outDirPath);
+    } catch (renameFilesError) {
+      debug('Unable to use rename(), trying alternative', renameFilesError);
+      // Alternative for Microsoft partitions (copying from C: to D:)
+      if (renameFilesError.code === 'EXDEV') {
+        await fs.copy(tmpTemplateFolder, outDirPath);
+        debug('Copied files from', tmpTemplateFolder, 'to', outDirPath);
+      }
+    }
+  } catch (error) {
+    debug('An error occured while moving files.', error);
+    spinner.fail(chalk.red('An error occured while moving files.'));
+    process.exit(3);
   }
 
   process.chdir(outDirPath);
