@@ -5,8 +5,8 @@
 Generate a 🚀 Start UI project in a new folder.
 
 ```bash
-npx create-start-ui --web [projectName]    # Generate a start-ui-web project
-npx create-start-ui --native [projectName] # Generate a start-ui-native project
+yarn create start-ui --web [projectName]    # Generate a start-ui-web project
+yarn create start-ui --native [projectName] # Generate a start-ui-native project
 ```
 
 ## Options
@@ -19,13 +19,32 @@ npx create-start-ui --native [projectName] # Generate a start-ui-native project
 --no-git-init           Ignore `git init` step
 ```
 
-
 ## Examples
 
 ```bash
 # Create a new web project
-npx create-start-ui --web my-web-project
+yarn create start-ui --web my-web-project
 
 # Skip git repo initialization
-npx create-start-ui --web --no-git-init my-web-project
+yarn create start-ui --web --no-git-init my-web-project
+```
+
+## Development
+
+1. Link the repository to your system with the following command:
+
+```bash
+yarn link
+```
+
+2. Test your local package in any directory:
+
+```bash
+yarn create start-ui --web [projectName]
+```
+
+3. After testing, remove the linked repository:
+
+```bash
+yarn unlink
 ```

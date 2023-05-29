@@ -101,8 +101,26 @@ const generate = async ({ projectName, outDirPath, target }) => {
     await execa('git', ['init']);
   }
 
+  // Block to copy the .env.example to .env
+  try {
+    // throw an exception if the file does not exist
+    const envExampleFile = path.resolve(outDirPath, '.env.example');
+    await fs.ensureFile(envExampleFile);
+    await fs.copyFile(envExampleFile, path.relative(outDirPath, '.env'));
+  } catch {
+    // No catch, we just want to make sure the file exist.
+  }
+
   spinner.text = 'Installing dependencies...';
   await execa('yarn', ['install']);
+
+  // Block for web target, to seed db
+  if (target === 'web') {
+    spinner.text = 'Creating database...';
+    await execa('yarn', ['db:push']);
+    spinner.text = 'Seeding database...';
+    await execa('yarn', ['db:seed']);
+  }
 
   spinner.succeed(
     `${chalk.green(' Project created and dependencies installed! ')}`
