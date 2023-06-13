@@ -108,7 +108,7 @@ const generate = async ({ projectName, outDirPath, target }) => {
       await execa('git', [
         'commit',
         '-m',
-        '"feat: init repository from create-start-ui"',
+        'feat: init repository from create-start-ui',
       ]);
     } catch {
       spinner.fail();
