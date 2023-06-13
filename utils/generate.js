@@ -99,6 +99,12 @@ const generate = async ({ projectName, outDirPath, target }) => {
   if (gitInit) {
     spinner.text = 'Initializing empty repository...';
     await execa('git', ['init']);
+    await execa('git', ['add', '.']);
+    await execa('git', [
+      'commit',
+      '-m',
+      '"feat: init repository from create-start-ui"',
+    ]);
   }
 
   // Block to copy the .env.example to .env
