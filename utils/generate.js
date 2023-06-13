@@ -54,7 +54,9 @@ const generate = async ({ projectName, outDirPath, target }) => {
     process.exit(1);
   }
 
-  spinner.text = `Extracting template into ${outDirPath}`;
+  spinner.succeed();
+
+  spinner.start(`Extracting template into ${outDirPath}`);
 
   const tmpDir = tempy.directory();
 
@@ -96,15 +98,23 @@ const generate = async ({ projectName, outDirPath, target }) => {
 
   process.chdir(outDirPath);
 
+  spinner.succeed();
   if (gitInit) {
-    spinner.text = 'Initializing empty repository...';
-    await execa('git', ['init']);
-    await execa('git', ['add', '.']);
-    await execa('git', [
-      'commit',
-      '-m',
-      '"feat: init repository from create-start-ui"',
-    ]);
+    spinner.start('Initializing empty repository...');
+
+    try {
+      await execa('git', ['init']);
+      await execa('git', ['add', '.']);
+      await execa('git', [
+        'commit',
+        '-m',
+        '"feat: init repository from create-start-ui"',
+      ]);
+    } catch {
+      spinner.fail();
+    }
+
+    spinner.succeed();
   }
 
   // Block to copy the .env.example to .env
@@ -117,15 +127,18 @@ const generate = async ({ projectName, outDirPath, target }) => {
     // No catch, we just want to make sure the file exist.
   }
 
-  spinner.text = 'Installing dependencies...';
+  spinner.start('Installing dependencies...');
   await execa('yarn', ['install']);
+  spinner.succeed();
 
   // Block for web target, to seed db
   if (target === 'web') {
-    spinner.text = 'Creating database...';
+    spinner.start('Creating database...');
     await execa('yarn', ['db:push']);
-    spinner.text = 'Seeding database...';
+    spinner.succeed();
+    spinner.start('Seeding database...');
     await execa('yarn', ['db:seed']);
+    spinner.succeed();
   }
 
   spinner.succeed(
@@ -138,6 +151,9 @@ const generate = async ({ projectName, outDirPath, target }) => {
   console.log(`  ${chalk.cyan(`cd ${chalk.white(projectName)}`)}`);
   console.log(`  ${chalk.cyan('yarn dev')}`);
   console.log('');
+  console.log(
+    'Check https://docs.web.start-ui.com/ for informations, or the documentations of the various technologies 🚀 Start UI [web] uses'
+  );
 };
 
 module.exports = {
