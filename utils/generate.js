@@ -78,6 +78,9 @@ const generate = async ({ projectName, outDirPath, target }) => {
     process.exit(2);
   }
 
+  spinner.succeed();
+  spinner.start(`Copying files to ${targetInfos.rootFolder}`);
+
   const tmpTemplateFolder = path.join(tmpDir, targetInfos.rootFolder);
   try {
     try {
@@ -100,7 +103,7 @@ const generate = async ({ projectName, outDirPath, target }) => {
 
   spinner.succeed();
   if (gitInit) {
-    spinner.start('Initializing empty repository...');
+    spinner.start('Initializing repository...');
 
     try {
       await execa('git', ['init']);
