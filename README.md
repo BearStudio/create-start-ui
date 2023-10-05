@@ -16,7 +16,9 @@ yarn create start-ui --native [projectName] # Generate a start-ui-native project
 -v, --version           Display CLI version
 --web PROJECT_PATH      Scaffold a brand new StartUI [Web] project
 --native PROJECT_PATH   Scaffold a brand new StartUI [Native] project
+--branch BRANCH_NAME    Specify the git branch used to clone the project
 --no-git-init           Ignore `git init` step
+--no-package-install    Ignore node packages install step
 ```
 
 ## Examples

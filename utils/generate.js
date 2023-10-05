@@ -8,18 +8,18 @@ const path = require('node:path');
 const tempy = require('tempy');
 
 const { flags } = require('./cli');
-const { gitInit } = flags;
+const { gitInit, packageInstall, branch } = flags;
 
 const { debug } = require('./debug');
 
 const targets = {
   web: {
-    url: 'https://github.com/BearStudio/start-ui-web/archive/refs/heads/master.tar.gz',
-    rootFolder: 'start-ui-web-master',
+    url: 'https://github.com/BearStudio/start-ui-web/archive/refs/heads/<branch>.tar.gz',
+    rootFolder: 'start-ui-web-<branch>',
   },
   native: {
-    url: 'https://github.com/BearStudio/start-ui-native/archive/refs/heads/main.tar.gz',
-    rootFolder: 'start-ui-native-main',
+    url: 'https://github.com/BearStudio/start-ui-native/archive/refs/heads/<branch>.tar.gz',
+    rootFolder: 'start-ui-native-<branch>',
   },
 };
 
@@ -37,13 +37,28 @@ const downloadFile = async (url) => {
 
 const spinner = ora({ text: '' });
 const generate = async ({ projectName, outDirPath, target }) => {
+  if (await fs.exists(outDirPath)) {
+    // First, check if the destination folder already exists
+    console.log(
+      `This folder may already exists: ${chalk.grey.underline(outDirPath)}`
+    );
+    console.log('If this is the case, try removing it.');
+    process.exit(2);
+  }
+
   const targetInfos = targets[target];
   spinner.start('Downloading template...');
 
   // Download zip
   let tempFilePath = null;
   try {
-    tempFilePath = await downloadFile(targetInfos.url);
+    tempFilePath = await downloadFile(
+      targetInfos.url.replace('<branch>', branch)
+    );
+    debug(
+      'downloading repo tar.gz: ',
+      targetInfos.url.replace('<branch>', branch)
+    );
   } catch (errorDownloadingTemplate) {
     debug('Cannot download template from repository', errorDownloadingTemplate);
     spinner.fail(
@@ -60,16 +75,19 @@ const generate = async ({ projectName, outDirPath, target }) => {
 
   const tmpDir = tempy.directory();
 
+  let extractedFolderName = '';
   try {
     await tar.extract({ file: tempFilePath, cwd: tmpDir });
+    const files = await fs.readdir(tmpDir);
+    extractedFolderName = files[0];
     debug('Template extracted');
   } catch (extractArchiveError) {
     debug(
-      'An error occured while extracting the template archive.',
+      'An error occurred while extracting the template archive.',
       extractArchiveError
     );
     spinner.fail(
-      chalk.red('An error occured while extracting the template archive.')
+      chalk.red('An error occurred while extracting the template archive.')
     );
     console.log(
       `This folder may already exists: ${chalk.grey.underline(outDirPath)}`
@@ -79,9 +97,9 @@ const generate = async ({ projectName, outDirPath, target }) => {
   }
 
   spinner.succeed();
-  spinner.start(`Copying files to ${targetInfos.rootFolder}`);
+  spinner.start(`Copying files to "${extractedFolderName}"`);
 
-  const tmpTemplateFolder = path.join(tmpDir, targetInfos.rootFolder);
+  const tmpTemplateFolder = path.join(tmpDir, extractedFolderName);
   try {
     try {
       await fs.rename(tmpTemplateFolder, outDirPath);
@@ -94,8 +112,8 @@ const generate = async ({ projectName, outDirPath, target }) => {
       }
     }
   } catch (error) {
-    debug('An error occured while moving files.', error);
-    spinner.fail(chalk.red('An error occured while moving files.'));
+    debug('An error occurred while moving files.', error);
+    spinner.fail(chalk.red('An error occurred while moving files.'));
     process.exit(3);
   }
 
@@ -130,33 +148,34 @@ const generate = async ({ projectName, outDirPath, target }) => {
     // No catch, we just want to make sure the file exist.
   }
 
-  spinner.start('Installing dependencies...');
-  await execa('yarn', ['install']);
-  spinner.succeed();
+  if (packageInstall) {
+    spinner.start('Installing dependencies...');
 
-  // Block for web target, to seed db
-  if (target === 'web') {
-    spinner.start('Creating database...');
-    await execa('yarn', ['db:push']);
+    let packageManager = 'yarn';
+    const pnpmLockFile = path.resolve(outDirPath, 'pnpm-lock.yaml');
+    if (await fs.exists(pnpmLockFile)) {
+      packageManager = 'pnpm';
+    }
+
+    await execa(packageManager, ['install']);
     spinner.succeed();
-    spinner.start('Seeding database...');
-    await execa('yarn', ['db:seed']);
-    spinner.succeed();
+
+    spinner.succeed(
+      `${chalk.green(' Project created and dependencies installed! ')}`
+    );
   }
 
-  spinner.succeed(
-    `${chalk.green(' Project created and dependencies installed! ')}`
-  );
   console.log(`Created ${projectName} at ${outDirPath}`);
   console.log('');
-  console.log('You can now run these commands to start using it:');
-  console.log('');
-  console.log(`  ${chalk.cyan(`cd ${chalk.white(projectName)}`)}`);
-  console.log(`  ${chalk.cyan('yarn dev')}`);
-  console.log('');
   console.log(
-    'Check https://docs.web.start-ui.com/ for informations, or the documentations of the various technologies 🚀 Start UI [web] uses'
+    'Go into the created folder and follow getting started instruction in the README.md'
   );
+  console.log('');
+  if (target === 'web') {
+    console.log(
+      'Check https://docs.web.start-ui.com/ for informations, or the documentations of the various technologies 🚀 Start UI [web] uses'
+    );
+  }
 };
 
 module.exports = {

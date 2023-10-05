@@ -15,6 +15,15 @@ const flags = {
     type: 'boolean',
     default: false,
   },
+  branch: {
+    type: 'string',
+    default: 'master',
+    alias: 'b',
+  },
+  packageInstall: {
+    type: 'boolean',
+    default: true,
+  },
   gitInit: {
     type: 'boolean',
     default: true,
@@ -42,15 +51,23 @@ const helpText = `
     $ create-start-ui <target> <projectPath>
 
   ${bold('Options')}
-    -h, --help              Show this help
-    -v, --version           Display CLI version
-    --web ${bold.underline(
-      'PROJECT_PATH'
-    )}      Scaffold a brand new ${startUiWebLink} project
-    --native ${bold.underline(
-      'PROJECT_PATH'
+    -h, --help                        Show this help
+    -v, --version                     Display CLI version
+    -b, --branch ${bold.underline('BRANCH_NAME')}  ${chalk.dim.italic(
+  'master'
+)}  Specify the branch used to clone the project
+    --web                     ${chalk.dim.italic(
+      'true'
+    )}    Scaffold a brand new ${startUiWebLink} project
+    --native                  ${chalk.dim.italic(
+      'false'
     )}   Scaffold a brand new ${startUiNativeLink} project
-    --no-git-init           Ignore ${chalk.dim('`git init`')} step
+    --no-package-install      ${chalk.dim.italic(
+      'false'
+    )}   Ignore node packages install step
+    --no-git-init             ${chalk.dim.italic('false')}   Ignore ${chalk.dim(
+  '`git init`'
+)} step
 
   ${bold('Examples')}
     ${chalk.cyan.bold('Create a new web project')}
@@ -58,6 +75,9 @@ const helpText = `
 
     ${chalk.cyan.bold('Skip git repo initialization')}
     $ ${chalk.dim('create-start-ui --web --no-git-init my-web-project')}
+
+    ${chalk.cyan.bold('Specify a branch to use to create the project')}
+    $ ${chalk.dim('create-start-ui --web --branch with-auth my-web-project')}
 `;
 
 const options = {
