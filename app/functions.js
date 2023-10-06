@@ -58,6 +58,7 @@ export const downloadAndSaveRepoTarball = async ({ target }) => {
 
 /**
  * Extract tar file into provided folder
+ * @returns extracted folder path
  */
 export const extractTemplateFolder = async ({
   tarballPath,
@@ -83,6 +84,9 @@ export const extractTemplateFolder = async ({
   return extractedFolderName;
 };
 
+/**
+ * Copy files from extracted folder into correct new project fodler
+ */
 export const copyFilesToNewProject = async ({
   fromFolderPath,
   toFolderPath,
