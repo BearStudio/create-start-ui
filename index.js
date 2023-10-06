@@ -1,11 +1,12 @@
 #!/usr/bin/env node
-const path = require('path');
+import chalk from 'chalk';
 
-const init = require('./utils/init');
-const cli = require('./utils/cli');
-const log = require('./utils/log');
-const chalk = require('chalk');
-const { generate } = require('./utils/generate');
+import path from 'node:path';
+
+import cli from './app/config/cli.js';
+import { generate } from './app/generate.js';
+import init from './app/init.js';
+import log from './app/log.js';
 
 const input = cli.input;
 const flags = cli.flags;
@@ -14,7 +15,7 @@ const { debug, help } = flags;
 const errorLog = chalk.bgRed;
 
 (async () => {
-  init();
+  await init();
   help && cli.showHelp(0);
   debug && log(flags);
 

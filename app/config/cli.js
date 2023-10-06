@@ -1,11 +1,11 @@
-const meow = require('meow');
-const chalk = require('chalk');
-const terminalLink = require('terminal-link');
+import chalk from 'chalk';
+import meow from 'meow';
+import terminalLink from 'terminal-link';
 
 const flags = {
   version: {
     type: 'boolean',
-    alias: 'v',
+    shortFlag: 'v',
   },
   web: {
     type: 'boolean',
@@ -18,7 +18,7 @@ const flags = {
   branch: {
     type: 'string',
     default: 'master',
-    alias: 'b',
+    shortFlag: 'b',
   },
   packageInstall: {
     type: 'boolean',
@@ -30,7 +30,7 @@ const flags = {
   },
   help: {
     type: 'boolean',
-    alias: ['h'],
+    shortFlag: ['h'],
     default: false,
   },
 };
@@ -54,8 +54,8 @@ const helpText = `
     -h, --help                        Show this help
     -v, --version                     Display CLI version
     -b, --branch ${bold.underline('BRANCH_NAME')}  ${chalk.dim.italic(
-  'master'
-)}  Specify the branch used to clone the project
+      'master'
+    )}  Specify the branch used to clone the project
     --web                     ${chalk.dim.italic(
       'true'
     )}    Scaffold a brand new ${startUiWebLink} project
@@ -66,8 +66,8 @@ const helpText = `
       'false'
     )}   Ignore node packages install step
     --no-git-init             ${chalk.dim.italic('false')}   Ignore ${chalk.dim(
-  '`git init`'
-)} step
+      '`git init`'
+    )} step
 
   ${bold('Examples')}
     ${chalk.cyan.bold('Create a new web project')}
@@ -86,6 +86,7 @@ const options = {
   hardRejection: false,
   autoHelp: false,
   flags,
+  importMeta: import.meta,
 };
 
-module.exports = meow(helpText, options);
+export default meow(helpText, options);

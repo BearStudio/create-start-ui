@@ -4,5 +4,9 @@
   "singleQuote": true,
   "tabWidth": 2,
   "trailingComma": "es5",
-  "arrowParens": "always"
+  "arrowParens": "always",
+  "importOrder": ["^node:(.*)$", "^./app/(.*)$", "^[./]"],
+  "importOrderSeparation": true,
+  "importOrderSortSpecifiers": true,
+  "plugins": ["@trivago/prettier-plugin-sort-imports"]
 }
