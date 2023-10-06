@@ -23,7 +23,7 @@
   "homepage": "https://github.com/bearstudio/create-start-ui#readme",
   "files": [
     "index.js",
-    "utils",
+    "app",
     "assets/startui-logo.png"
   ],
   "scripts": {
