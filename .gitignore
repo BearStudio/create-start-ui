@@ -72,3 +72,5 @@ assets/img/.DS_Store
 # .vscode
 
 .eslintcache
+
+dist/

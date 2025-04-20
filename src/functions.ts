@@ -12,6 +12,7 @@ import ky from "ky";
 import { extract } from "tar";
 import { Future } from "@swan-io/boxed";
 import { debug } from "./config/debug.js";
+import { moveFile } from "move-file";
 
 /**
  * Make sure you can create a start-ui project with the specified cli arguments
@@ -127,30 +128,19 @@ export const copyFilesToNewProject = async ({
   fromFolderPath: string;
   toFolderPath: string;
 }) => {
-  const copyResult = await Future.fromPromise<void, Error & { code: string }>(
-    fs.rename(fromFolderPath, toFolderPath),
+  const moveResult = await Future.fromPromise(
+    moveFile(fromFolderPath, toFolderPath),
   );
-  if (copyResult.isOk()) {
+
+  if (moveResult.isOk()) {
     return;
   }
 
-  if (copyResult.error.code !== "EXDEV") {
-    debug("an error occurred while moving files.", copyResult.error);
-    spinner.fail(chalk.red("An error occurred while moving files."));
-    process.exit(4);
-  }
-
-  // Special case (EXDEV error) handled when we try to copy
-  // folders between differents partitions on windows (from C: to D: for ex.)
-  debug("Unable to use rename(), trying alternative", copyResult.error);
-  const partitionsCopyResult = await Future.fromPromise(
-    copy(fromFolderPath, toFolderPath),
-  );
-  if (partitionsCopyResult.isError()) {
-    debug("An error occured while moving files.", partitionsCopyResult.error);
+  if (moveResult.isError()) {
+    debug("An error occured while moving files.", moveResult.error);
     spinner.fail(chalk.red("An error occured while moving files."));
     process.exit(5);
   }
 
-  debug("Copied files from", fromFolderPath, "to", toFolderPath);
+  debug("Moved files from", fromFolderPath, "to", toFolderPath);
 };
