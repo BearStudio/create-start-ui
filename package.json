@@ -14,15 +14,15 @@
   },
   "keywords": [
     "create-start-ui",
-    "start-ui"
+    "start-ui",
+    "start-ui-web",
+    "start-ui-native"
   ],
   "bugs": {
     "url": "https://github.com/bearstudio/create-start-ui/issues"
   },
   "homepage": "https://github.com/bearstudio/create-start-ui#readme",
-  "files": [
-    "build"
-  ],
+  "files": ["build"],
   "scripts": {
     "check": "biome check",
     "dev": "pnpm link-cli && pnpm build --watch",
@@ -59,9 +59,6 @@
     "node": ">=20"
   },
   "pnpm": {
-    "onlyBuiltDependencies": [
-      "@biomejs/biome",
-      "lefthook"
-    ]
+    "onlyBuiltDependencies": ["@biomejs/biome", "lefthook"]
   }
 }

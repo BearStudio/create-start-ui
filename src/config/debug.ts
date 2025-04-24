@@ -1,5 +1,5 @@
 export const debug = (...args: unknown[]) => {
-  if (process.env.NODE_ENV === "development") {
-    console.log(...args);
+  if (global.isVerbose) {
+    console.info(...args);
   }
 };

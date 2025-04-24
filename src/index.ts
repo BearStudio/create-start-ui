@@ -1,21 +1,23 @@
 #!/usr/bin/env node
 import { Command } from '@commander-js/extra-typings';
 import { Future, Option } from '@swan-io/boxed';
-import { execa } from 'execa';
+import { $ } from 'execa';
 import ora from 'ora';
 
 import path from 'node:path';
-import chalk from 'chalk';
-import { copyFile, ensureFile } from 'fs-extra';
-import { temporaryDirectoryTask } from 'tempy';
-import packageJson from '../package.json' with { type: 'json' };
-import { type Target, repos } from './config/repos.js';
+import { debug } from '@/config/debug.js';
+import { type Target, repos } from '@/config/repos.js';
 import {
   checkEnv,
   copyFilesToNewProject,
   downloadAndSaveRepoTarball,
   extractTemplateFolder,
-} from './functions.js';
+} from '@/functions.js';
+import chalk from 'chalk';
+import { copyFile, ensureFile } from 'fs-extra';
+import { temporaryDirectoryTask } from 'tempy';
+
+import packageJson from '../package.json' with { type: 'json' };
 
 const isTarget = (value: string): value is Target => {
   return ['web', 'native'].includes(value);
@@ -31,6 +33,7 @@ const program = new Command()
   .option('-t, --type <type>', 'Type of app you want to create', parseTarget)
   .option('--skip-install', 'Skip node modules installation step', false)
   .option('--skip-git-init', 'Skip git init step', false)
+  .option('--verbose', 'Add additional details if something goes wrong', false)
   .version(packageJson.version);
 
 const val = program.parse(process.argv);
@@ -42,8 +45,8 @@ if (outDirPath.isNone()) {
 }
 
 const options = val.opts();
+global.isVerbose = options.verbose;
 const spinner = ora({ text: 'Downloading template...' });
-spinner.start();
 
 // Check that there is no existing folder with the same name
 // as the outDirPath
@@ -80,11 +83,11 @@ if (!options.skipGitInit) {
   spinner.start('Initializing repository...');
 
   try {
-    await execa`git init`;
-    await execa`git add .`;
-    await execa`git commit -m "feat: initial commit"`;
+    await $`git init`;
+    await $`git add .`;
+    await $`git commit -m "feat: initial commit"`;
   } catch {
-    // TODO: make sure to remore .git folder if initialisation fail
+    // TODO: make sure to remove .git folder if initialisation fail
     spinner.fail();
   }
 
@@ -98,21 +101,40 @@ await Future.fromPromise(ensureFile(envExampleFile))
     copyFile(envExampleFile, path.relative(outDirPath.value, '.env'));
   })
   .tapError(() =>
-    // TODO: use warning colors here
     console.log(
-      'Something went wrong while initializing .env file. You have to create it manually.',
+      chalk.yellow(
+        'Something went wrong while initializing .env file. You have to create it manually.',
+      ),
     ),
   );
 
 if (!options.skipInstall) {
-  // TODO: checks for pnpm installation, fail if not system wide available
   spinner.start('Installing dependencies with pnpm...');
-  await execa`pnpm install`;
-  spinner.succeed();
 
-  spinner.succeed(
-    `${chalk.green('Project created and dependencies installed! ')}`,
-  );
+  // Make sure pnpm is installed before trying anything
+  const checkPnpmCliResult = await Future.fromPromise($`pnpm -v`);
+  if (checkPnpmCliResult.isError()) {
+    debug('pnpm not detected', checkPnpmCliResult.error);
+    spinner.warn(
+      chalk.yellow(
+        'Unable to find pnpm. You will need to install dependencies yourself.',
+      ),
+    );
+  } else {
+    const pnpmInstallExecutionResult =
+      await Future.fromPromise($`pnpm installdhudiz`);
+    if (pnpmInstallExecutionResult.isError()) {
+      debug('pnpm install failed', pnpmInstallExecutionResult.error);
+      spinner.warn(
+        'Something went wrong while installing dependencies with pnpm.',
+      );
+      console.log(chalk.green('Project created!'));
+    } else {
+      spinner.succeed(
+        `${chalk.green('Project created and dependencies installed! ')}`,
+      );
+    }
+  }
 }
 
 console.log(

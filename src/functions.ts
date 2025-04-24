@@ -1,18 +1,18 @@
-import { copy, exists } from "fs-extra";
-import fs from "node:fs/promises";
-import chalk from "chalk";
+import fs from 'node:fs/promises';
+import { debug } from '@/config/debug.js';
 import {
+  type Target,
   replacableIndicator,
   repos,
   spinner,
-  type Target,
-} from "@/config/repos.js";
-import { temporaryFile } from "tempy";
-import ky from "ky";
-import { extract } from "tar";
-import { Future } from "@swan-io/boxed";
-import { debug } from "./config/debug.js";
-import { moveFile } from "move-file";
+} from '@/config/repos.js';
+import { Future } from '@swan-io/boxed';
+import chalk from 'chalk';
+import { exists } from 'fs-extra';
+import ky from 'ky';
+import { moveFile } from 'move-file';
+import { extract } from 'tar';
+import { temporaryFile } from 'tempy';
 
 /**
  * Make sure you can create a start-ui project with the specified cli arguments
@@ -21,14 +21,24 @@ import { moveFile } from "move-file";
 export const checkEnv = async ({ outDirPath }: { outDirPath: string }) => {
   const checkDirExistResult = await Future.fromPromise(exists(outDirPath));
   if (checkDirExistResult.isError()) {
-    // First, check if the destination folder already exists
-    console.log(
-      `This folder may already exists: ${chalk.yellow.underline(outDirPath)}`,
+    spinner.fail(
+      'Cannot check if the folder exists. Make sure you have sufficient rights on your system.',
     );
-    console.log("If this is the case, try removing it first.");
-    console.log();
-    process.exit(2);
+    process.exit(7);
   }
+
+  // First, check if the destination folder already exists
+  if (!checkDirExistResult.value) {
+    // If the folder do not already exists, continue the script
+    return;
+  }
+
+  console.log(
+    `This folder may already exists: ${chalk.yellow.underline(outDirPath)}`,
+  );
+  console.log('If this is the case, try removing it first.');
+  console.log();
+  process.exit(2);
 };
 
 /**
@@ -42,25 +52,25 @@ export const downloadAndSaveRepoTarball = async ({
   target: Target;
   branch: string;
 }) => {
-  spinner.start("Downloading template...");
+  spinner.start('Downloading template...');
   const tmpFilePath = temporaryFile();
   const targetInfos = repos[target];
   const repoUrl = targetInfos.url.replace(replacableIndicator, branch);
 
   try {
-    debug("downloading repo tar.gz: ", repoUrl);
+    debug('downloading repo tar.gz: ', repoUrl);
     const response = await ky(repoUrl, {
-      responseType: "stream",
+      responseType: 'stream',
     }).arrayBuffer();
     await fs.writeFile(tmpFilePath, Buffer.from(response));
   } catch (errorDownloadingTemplate) {
-    debug("Cannot download template from repository", errorDownloadingTemplate);
+    debug('Cannot download template from repository', errorDownloadingTemplate);
     spinner.fail(
       chalk.red(
         `Cannot download template from repository. Make sure that your connection is ok or that the specified branch exists (${repoUrl}).`,
       ),
     );
-    console.log("");
+    console.log('');
     process.exit(1);
   }
   spinner.succeed();
@@ -78,18 +88,18 @@ export const extractTemplateFolder = async ({
   tarballPath: string;
   targetFolderPath: string;
 }) => {
-  let extractedFolderName = "";
+  let extractedFolderName = '';
 
   const extractResult = await Future.fromPromise(
     extract({ file: tarballPath, cwd: targetFolderPath }),
   );
   if (extractResult.isError()) {
     debug(
-      "an error occured while extracting the template archive.",
+      'an error occurred while extracting the template archive.',
       extractResult.error,
     );
     spinner.fail(
-      chalk.red("An error occured while extracting the template archive"),
+      chalk.red('An error occurred while extracting the template archive'),
     );
     process.exit(2);
   }
@@ -97,29 +107,29 @@ export const extractTemplateFolder = async ({
   const filesResult = await Future.fromPromise(fs.readdir(targetFolderPath));
   if (filesResult.isError()) {
     debug(
-      "An error occured while reading the extracting files",
+      'An error occurred while reading the extracting files',
       filesResult.error,
     );
-    spinner.fail("An error occured while extracting the template archive");
+    spinner.fail('An error occurred while extracting the template archive');
     process.exit(3);
   }
 
   if (!filesResult.value[0]) {
     debug(
-      "An error occured while reading folder name",
+      'An error occurred while reading folder name',
       filesResult.value.length,
     );
-    spinner.fail("An error occured while extracting the template archive");
+    spinner.fail('An error occurred while extracting the template archive');
     process.exit(6);
   }
   extractedFolderName = filesResult.value[0];
-  debug("Template extracted");
+  debug('Template extracted');
 
   return extractedFolderName;
 };
 
 /**
- * Copy files from extracted folder into correct new project fodler
+ * Copy files from extracted folder into correct new project folder
  */
 export const copyFilesToNewProject = async ({
   fromFolderPath,
@@ -137,10 +147,10 @@ export const copyFilesToNewProject = async ({
   }
 
   if (moveResult.isError()) {
-    debug("An error occured while moving files.", moveResult.error);
-    spinner.fail(chalk.red("An error occured while moving files."));
+    debug('An error occurred while moving files.', moveResult.error);
+    spinner.fail(chalk.red('An error occurred while moving files.'));
     process.exit(5);
   }
 
-  debug("Moved files from", fromFolderPath, "to", toFolderPath);
+  debug('Moved files from', fromFolderPath, 'to', toFolderPath);
 };
