@@ -1,5 +1,3 @@
-import { config } from '@/lib/conf.js';
-
 import chalk from 'chalk';
 
 /**
@@ -7,10 +5,6 @@ import chalk from 'chalk';
  * Act as a wrapper around console.log
  */
 export const debug = (...args: unknown[]) => {
-  if (config.get('allowTelemetry')) {
-    // todo: add sentry usage here
-  }
-
   if (global.isVerbose) {
     console.debug(
       `\n${chalk.magenta('DEBUG')}\n`,

@@ -1,9 +1,11 @@
-import fs from 'node:fs/promises';
+import path from 'node:path';
+import { cwd } from 'node:process';
 import { debug } from '@/lib/debug.js';
-import { type Target, replacableIndicator, repos, spinner } from '@/lib/repos.js';
+import { type Target, replacableIndicator, repos } from '@/lib/repos.js';
+import { spinner } from '@/lib/spinner.js';
 import { Future } from '@swan-io/boxed';
 import chalk from 'chalk';
-import { exists } from 'fs-extra';
+import { exists, readdir, writeFile } from 'fs-extra';
 import ky from 'ky';
 import { moveFile } from 'move-file';
 import { extract } from 'tar';
@@ -27,7 +29,7 @@ export const checkEnv = async ({ outDirPath }: { outDirPath: string }) => {
   }
 
   console.log();
-  console.log(`This folder may already exists: ${chalk.yellow.underline(outDirPath)}`);
+  console.log(`This folder may already exists: ${chalk.yellow.underline(path.join(cwd(), outDirPath))}`);
   console.log('If this is the case, try removing it first.');
   console.log();
   process.exit(2);
@@ -48,22 +50,30 @@ export const downloadAndSaveRepoTarball = async ({
   const targetInfos = repos[target];
   const repoUrl = targetInfos.url.replace(replacableIndicator, branch);
 
-  try {
-    debug('downloading repo tar.gz: ', repoUrl);
-    const response = await ky(repoUrl, {
+  const responseResult = await Future.fromPromise(
+    ky(repoUrl, {
       responseType: 'stream',
-    }).arrayBuffer();
-    await fs.writeFile(tmpFilePath, Buffer.from(response));
-  } catch (errorDownloadingTemplate) {
-    debug('Cannot download template from repository', errorDownloadingTemplate);
+    }).arrayBuffer(),
+  );
+  if (responseResult.isError()) {
+    debug('Cannot download template from repository', responseResult.error);
     spinner.fail(
-      chalk.red(
-        `Cannot download template from repository. Make sure that your connection is ok or that the specified branch exists (${repoUrl}).`,
-      ),
+      `Cannot download template from repository. Make sure that your connection is ok or that the specified branch exists (${repoUrl}).`,
     );
     console.log('');
     process.exit(1);
   }
+
+  const saveFileResult = await Future.fromPromise(writeFile(tmpFilePath, Buffer.from(responseResult.value)));
+  if (saveFileResult.isError()) {
+    debug('Cannot saved downloaded template file', saveFileResult.error);
+    spinner.fail('');
+    console.log(
+      `Cannot download template from repository. Make sure that your connection is ok or that the specified branch exists (${repoUrl}).`,
+    );
+    process.exit(1);
+  }
+
   return tmpFilePath;
 };
 
@@ -87,7 +97,7 @@ export const extractTemplateFolder = async ({
     process.exit(2);
   }
 
-  const filesResult = await Future.fromPromise(fs.readdir(targetFolderPath));
+  const filesResult = await Future.fromPromise(readdir(targetFolderPath));
   if (filesResult.isError()) {
     debug('An error occurred while reading the extracting files', filesResult.error);
     spinner.fail('An error occurred while extracting the template archive');

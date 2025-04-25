@@ -18,5 +18,3 @@ export const repos: Record<Target, Repo> = {
   },
 } as const;
 export type Target = 'web' | 'native';
-
-export const spinner = ora({ text: '' });

@@ -1,51 +1,34 @@
 #!/usr/bin/env node
+
+// note: This import needs to stay at the top
+// it allows us to catch unhandled error as soon as they appear
 import '@/lib/sentry.js';
 
-import { Command } from '@commander-js/extra-typings';
+import path from 'node:path';
+import { cwd } from 'node:process';
+
 import { confirm } from '@inquirer/prompts';
 import { Future, Option } from '@swan-io/boxed';
-import { $ } from 'execa';
-
-import path from 'node:path';
-import { checkEnv, copyFilesToNewProject, downloadAndSaveRepoTarball, extractTemplateFolder } from '@/functions.js';
-import { debug } from '@/lib/debug.js';
-import { type Target, repos, spinner } from '@/lib/repos.js';
 import chalk from 'chalk';
-import { copyFile } from 'fs-extra';
+import { $ } from 'execa';
 import { temporaryDirectoryTask } from 'tempy';
 
-import { cwd } from 'node:process';
+import { checkEnv, copyFilesToNewProject, downloadAndSaveRepoTarball, extractTemplateFolder } from '@/functions.js';
+import { program } from '@/lib/cli.js';
 import { config } from '@/lib/conf.js';
-import packageJson from '../package.json' with { type: 'json' };
+import { debug } from '@/lib/debug.js';
+import { type Target, repos } from '@/lib/repos.js';
+import { spinner } from '@/lib/spinner.js';
 
-const isTarget = (value: string): value is Target => {
-  return ['web', 'native'].includes(value);
-};
-
-const parseTarget = (value: string) => {
-  return isTarget(value) ? value : null;
-};
-
-const program = new Command()
-  .argument('<appName>', 'Name of the app to create')
-  .option('-b, --branch <branch>', 'Specify a branch you want to use to start')
-  .option('-t, --type <type>', 'Type of app you want to create', parseTarget)
-  .option('--skip-install', 'Skip node modules installation step', false)
-  .option('--skip-git-init', 'Skip git init step', false)
-  .option('--verbose', 'Add additional details if something goes wrong', false)
-  .version(packageJson.version);
-
-const val = program.parse(process.argv);
-const outDirPath = Option.fromNullable(val.args[0]);
+const parsedCliArgs = program.parse(process.argv);
+const outDirPath = Option.fromNullable(parsedCliArgs.args[0]);
 if (outDirPath.isNone()) {
-  // note: there is no way this condition will be true
-  // commander will takes care that the path arg will be set
-
-  // not a huge fan of this approach, could be better
-  process.exit(6);
+  program.outputHelp();
+  process.exit();
 }
 
-const options = val.opts();
+const options = parsedCliArgs.opts();
+const type = Option.fromNullable(options.type).getOr('web') as Target;
 
 // We make this option available in the global scope,
 // so debug() function can access it without the need to pass it
@@ -70,8 +53,6 @@ if (!config.has('allowTelemetry')) {
 // Check that there is no existing folder with the same name
 // as the outDirPath
 await checkEnv({ outDirPath: outDirPath.value });
-
-const type = Option.fromNullable(options.type).getOr('web');
 
 // Download template zip file from target repo
 spinner.start(`Creating template into ${path.join(cwd(), outDirPath.value)}`);
@@ -110,20 +91,6 @@ if (!options.skipGitInit) {
     spinner.fail();
   }
 }
-
-// Copy the .env.example to .env
-const envExampleFile = path.resolve(cwd(), '.env.example');
-debug('Resolved .env.example path', envExampleFile);
-const copyTaskResult = await Future.fromPromise(copyFile(envExampleFile, path.relative(outDirPath.value, '.env')));
-copyTaskResult.match({
-  Ok: () => {
-    debug('.env file created from .env.example');
-  },
-  Error: (error) => {
-    debug('Cannot create .env file.', error);
-    console.warn(chalk.yellow('Something went wrong while initializing .env file. You have to create it manually.'));
-  },
-});
 
 if (!options.skipInstall) {
   spinner.start('Installing dependencies with pnpm...');
