@@ -1,22 +1,21 @@
 #!/usr/bin/env node
+import '@/lib/sentry.js';
+
 import { Command } from '@commander-js/extra-typings';
+import { confirm } from '@inquirer/prompts';
 import { Future, Option } from '@swan-io/boxed';
 import { $ } from 'execa';
-import ora from 'ora';
 
 import path from 'node:path';
-import { debug } from '@/config/debug.js';
-import { type Target, repos } from '@/config/repos.js';
-import {
-  checkEnv,
-  copyFilesToNewProject,
-  downloadAndSaveRepoTarball,
-  extractTemplateFolder,
-} from '@/functions.js';
+import { checkEnv, copyFilesToNewProject, downloadAndSaveRepoTarball, extractTemplateFolder } from '@/functions.js';
+import { debug } from '@/lib/debug.js';
+import { type Target, repos, spinner } from '@/lib/repos.js';
 import chalk from 'chalk';
-import { copyFile, ensureFile } from 'fs-extra';
+import { copyFile } from 'fs-extra';
 import { temporaryDirectoryTask } from 'tempy';
 
+import { cwd } from 'node:process';
+import { config } from '@/lib/conf.js';
 import packageJson from '../package.json' with { type: 'json' };
 
 const isTarget = (value: string): value is Target => {
@@ -39,14 +38,34 @@ const program = new Command()
 const val = program.parse(process.argv);
 const outDirPath = Option.fromNullable(val.args[0]);
 if (outDirPath.isNone()) {
-  // NOTE: there is no way this condition will be true
+  // note: there is no way this condition will be true
   // commander will takes care that the path arg will be set
+
+  // not a huge fan of this approach, could be better
   process.exit(6);
 }
 
 const options = val.opts();
+
+// We make this option available in the global scope,
+// so debug() function can access it without the need to pass it
+// as a parameter everytime we want to use it
 global.isVerbose = options.verbose;
-const spinner = ora({ text: 'Downloading template...' });
+
+// If this is the first time launching the cli
+// Ask for telemetry usage approval
+if (!config.has('allowTelemetry')) {
+  console.log(
+    'create-start-ui is using telemetry to track bugs.\nCollected data is anonymous and help us to fix issues.',
+  );
+
+  const telemetryApproval = await confirm({
+    message: 'Do you allow us to use telemetry to track bugs?',
+    default: true,
+  });
+
+  config.set('allowTelemetry', telemetryApproval);
+}
 
 // Check that there is no existing folder with the same name
 // as the outDirPath
@@ -55,12 +74,11 @@ await checkEnv({ outDirPath: outDirPath.value });
 const type = Option.fromNullable(options.type).getOr('web');
 
 // Download template zip file from target repo
+spinner.start(`Creating template into ${path.join(cwd(), outDirPath.value)}`);
 const tempFilePath = await downloadAndSaveRepoTarball({
   target: type,
   branch: options.branch ?? repos[type].defaultBranch,
 });
-
-spinner.start(`Extracting template into ${outDirPath.value}`);
 
 await temporaryDirectoryTask(async (tmpDir) => {
   const extractedFolderName = await extractTemplateFolder({
@@ -75,74 +93,64 @@ await temporaryDirectoryTask(async (tmpDir) => {
   });
 });
 
+spinner.succeed();
 process.chdir(outDirPath.value);
 
-spinner.succeed();
-
+// Init git repository and add first commit
 if (!options.skipGitInit) {
   spinner.start('Initializing repository...');
 
   try {
     await $`git init`;
     await $`git add .`;
-    await $`git commit -m "feat: initial commit"`;
-  } catch {
-    // TODO: make sure to remove .git folder if initialisation fail
+    await $`git commit -m "${'feat: initial commit'}"`;
+    spinner.succeed();
+  } catch (error) {
+    debug('Failed to initialize git repository', error);
     spinner.fail();
   }
-
-  spinner.succeed();
 }
 
-// Block to copy the .env.example to .env
-const envExampleFile = path.resolve(outDirPath.value, '.env.example');
-await Future.fromPromise(ensureFile(envExampleFile))
-  .mapOk(() => {
-    copyFile(envExampleFile, path.relative(outDirPath.value, '.env'));
-  })
-  .tapError(() =>
-    console.log(
-      chalk.yellow(
-        'Something went wrong while initializing .env file. You have to create it manually.',
-      ),
-    ),
-  );
+// Copy the .env.example to .env
+const envExampleFile = path.resolve(cwd(), '.env.example');
+debug('Resolved .env.example path', envExampleFile);
+const copyTaskResult = await Future.fromPromise(copyFile(envExampleFile, path.relative(outDirPath.value, '.env')));
+copyTaskResult.match({
+  Ok: () => {
+    debug('.env file created from .env.example');
+  },
+  Error: (error) => {
+    debug('Cannot create .env file.', error);
+    console.warn(chalk.yellow('Something went wrong while initializing .env file. You have to create it manually.'));
+  },
+});
 
 if (!options.skipInstall) {
   spinner.start('Installing dependencies with pnpm...');
 
   // Make sure pnpm is installed before trying anything
   const checkPnpmCliResult = await Future.fromPromise($`pnpm -v`);
-  if (checkPnpmCliResult.isError()) {
-    debug('pnpm not detected', checkPnpmCliResult.error);
-    spinner.warn(
-      chalk.yellow(
-        'Unable to find pnpm. You will need to install dependencies yourself.',
-      ),
-    );
-  } else {
-    const pnpmInstallExecutionResult =
-      await Future.fromPromise($`pnpm installdhudiz`);
-    if (pnpmInstallExecutionResult.isError()) {
-      debug('pnpm install failed', pnpmInstallExecutionResult.error);
-      spinner.warn(
-        'Something went wrong while installing dependencies with pnpm.',
-      );
-      console.log(chalk.green('Project created!'));
-    } else {
-      spinner.succeed(
-        `${chalk.green('Project created and dependencies installed! ')}`,
-      );
-    }
-  }
+  await checkPnpmCliResult.match({
+    Ok: async () => {
+      const pnpmInstallExecutionResult = await Future.fromPromise($`pnpm install`);
+      if (pnpmInstallExecutionResult.isError()) {
+        debug('pnpm install failed', pnpmInstallExecutionResult.error);
+        spinner.warn('Something went wrong while installing dependencies with pnpm.');
+      }
+      spinner.succeed('Installing dependencies with pnpm...');
+    },
+    Error: (error) => {
+      debug('pnpm not detected', error);
+      spinner.warn(chalk.yellow('Unable to find pnpm. You will need to install dependencies yourself.'));
+    },
+  });
 }
 
-console.log(
-  'Go into the created folder and follow getting started instruction in the README.md',
-);
 console.log('');
+console.log(chalk.green('✅ Project created!'));
+console.log(
+  `➡️  Run \`${chalk.grey(`cd ${outDirPath.value}`)}\` and follow getting started instructions in the README.md`,
+);
 if (type === 'web') {
-  console.log(
-    'Check https://docs.web.start-ui.com/ for informations, or the documentations of the various technologies 🚀 Start UI [web] uses',
-  );
+  console.log('ℹ️  Check https://docs.web.start-ui.com/ for additional guides or details about 🚀 Start UI [web]');
 }

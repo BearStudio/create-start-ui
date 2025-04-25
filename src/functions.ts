@@ -1,11 +1,6 @@
 import fs from 'node:fs/promises';
-import { debug } from '@/config/debug.js';
-import {
-  type Target,
-  replacableIndicator,
-  repos,
-  spinner,
-} from '@/config/repos.js';
+import { debug } from '@/lib/debug.js';
+import { type Target, replacableIndicator, repos, spinner } from '@/lib/repos.js';
 import { Future } from '@swan-io/boxed';
 import chalk from 'chalk';
 import { exists } from 'fs-extra';
@@ -21,9 +16,7 @@ import { temporaryFile } from 'tempy';
 export const checkEnv = async ({ outDirPath }: { outDirPath: string }) => {
   const checkDirExistResult = await Future.fromPromise(exists(outDirPath));
   if (checkDirExistResult.isError()) {
-    spinner.fail(
-      'Cannot check if the folder exists. Make sure you have sufficient rights on your system.',
-    );
+    spinner.fail('Cannot check if the folder exists. Make sure you have sufficient rights on your system.');
     process.exit(7);
   }
 
@@ -33,9 +26,8 @@ export const checkEnv = async ({ outDirPath }: { outDirPath: string }) => {
     return;
   }
 
-  console.log(
-    `This folder may already exists: ${chalk.yellow.underline(outDirPath)}`,
-  );
+  console.log();
+  console.log(`This folder may already exists: ${chalk.yellow.underline(outDirPath)}`);
   console.log('If this is the case, try removing it first.');
   console.log();
   process.exit(2);
@@ -52,7 +44,6 @@ export const downloadAndSaveRepoTarball = async ({
   target: Target;
   branch: string;
 }) => {
-  spinner.start('Downloading template...');
   const tmpFilePath = temporaryFile();
   const targetInfos = repos[target];
   const repoUrl = targetInfos.url.replace(replacableIndicator, branch);
@@ -73,7 +64,6 @@ export const downloadAndSaveRepoTarball = async ({
     console.log('');
     process.exit(1);
   }
-  spinner.succeed();
   return tmpFilePath;
 };
 
@@ -90,35 +80,22 @@ export const extractTemplateFolder = async ({
 }) => {
   let extractedFolderName = '';
 
-  const extractResult = await Future.fromPromise(
-    extract({ file: tarballPath, cwd: targetFolderPath }),
-  );
+  const extractResult = await Future.fromPromise(extract({ file: tarballPath, cwd: targetFolderPath }));
   if (extractResult.isError()) {
-    debug(
-      'an error occurred while extracting the template archive.',
-      extractResult.error,
-    );
-    spinner.fail(
-      chalk.red('An error occurred while extracting the template archive'),
-    );
+    debug('an error occurred while extracting the template archive.', extractResult.error);
+    spinner.fail(chalk.red('An error occurred while extracting the template archive'));
     process.exit(2);
   }
 
   const filesResult = await Future.fromPromise(fs.readdir(targetFolderPath));
   if (filesResult.isError()) {
-    debug(
-      'An error occurred while reading the extracting files',
-      filesResult.error,
-    );
+    debug('An error occurred while reading the extracting files', filesResult.error);
     spinner.fail('An error occurred while extracting the template archive');
     process.exit(3);
   }
 
   if (!filesResult.value[0]) {
-    debug(
-      'An error occurred while reading folder name',
-      filesResult.value.length,
-    );
+    debug('An error occurred while reading folder name', filesResult.value.length);
     spinner.fail('An error occurred while extracting the template archive');
     process.exit(6);
   }
@@ -138,9 +115,7 @@ export const copyFilesToNewProject = async ({
   fromFolderPath: string;
   toFolderPath: string;
 }) => {
-  const moveResult = await Future.fromPromise(
-    moveFile(fromFolderPath, toFolderPath),
-  );
+  const moveResult = await Future.fromPromise(moveFile(fromFolderPath, toFolderPath));
 
   if (moveResult.isOk()) {
     return;

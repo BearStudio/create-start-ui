@@ -11,6 +11,7 @@
     "ignore": []
   },
   "formatter": {
+    "lineWidth": 120,
     "enabled": true,
     "indentStyle": "space",
     "indentWidth": 2,

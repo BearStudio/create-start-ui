@@ -12,12 +12,7 @@
     "email": "renan.decamps@gmail.com",
     "url": "https://github.com/decampsrenan"
   },
-  "keywords": [
-    "create-start-ui",
-    "start-ui",
-    "start-ui-web",
-    "start-ui-native"
-  ],
+  "keywords": ["create-start-ui", "start-ui", "start-ui-web", "start-ui-native"],
   "bugs": {
     "url": "https://github.com/bearstudio/create-start-ui/issues"
   },
@@ -30,11 +25,14 @@
     "build": "ncc build src/index.ts -o dist"
   },
   "dependencies": {
+    "@inquirer/prompts": "7.5.0",
+    "@sentry/node": "9.14.0",
     "@swan-io/boxed": "3.2.0",
     "chalk": "5.4.1",
     "cli-alerts": "2.0.0",
     "cli-handle-error": "4.4.0",
     "commander": "13.1.0",
+    "conf": "13.1.0",
     "execa": "9.5.2",
     "fs-extra": "11.2.0",
     "ky": "1.7.4",
