@@ -4,49 +4,45 @@
 
 Generate a 🚀 Start UI project in a new folder.
 
-```bash
-yarn create start-ui --web [projectName]    # Generate a start-ui-web project
-yarn create start-ui --native [projectName] # Generate a start-ui-native project
+```sh
+pnpm create start-ui <projectName>    # Generate a start-ui-web project
+pnpm create start-ui -t native <projectName> # Generate a start-ui-native project
 ```
 
 ## Options
 
-```
--h, --help              Show this help
--v, --version           Display CLI version
---web PROJECT_PATH      Scaffold a brand new StartUI [Web] project
---native PROJECT_PATH   Scaffold a brand new StartUI [Native] project
---branch BRANCH_NAME    Specify the git branch used to clone the project
---no-git-init           Ignore `git init` step
---no-package-install    Ignore node packages install step
-```
+```sh
+Usage: create-start-ui [options] <appName>
 
-## Examples
+Arguments:
+  appName                Name of the app to create
 
-```bash
-# Create a new web project
-yarn create start-ui --web my-web-project
-
-# Skip git repo initialization
-yarn create start-ui --web --no-git-init my-web-project
+Options:
+  -b, --branch <branch>  Specify a branch you want to use to start
+  -t, --type <type>      Type of app you want to create
+  --skip-install         Skip node modules installation step (default: false)
+  --skip-git-init        Skip git init step (default: false)
+  --verbose              Add additional details if something goes wrong (default: false)
+  -V, --version          output the version number
+  -h, --help             display help for command
 ```
 
 ## Development
 
 1. Link the repository to your system with the following command:
 
-```bash
-yarn link
+```sh
+pnpm link-cli
 ```
 
-2. Test your local package in any directory:
+2. Run dev command to have the cli be rebuilt on each save:
 
-```bash
-yarn create start-ui --web [projectName]
+```sh
+pnpm dev
 ```
 
-3. After testing, remove the linked repository:
+3. Run the cli in any directory, it will reflect any changes you have made:
 
-```bash
-yarn unlink
+```sh
+create-start-ui myApp
 ```

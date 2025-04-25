@@ -29,8 +29,6 @@
     "@sentry/node": "9.14.0",
     "@swan-io/boxed": "3.2.0",
     "chalk": "5.4.1",
-    "cli-alerts": "2.0.0",
-    "cli-handle-error": "4.4.0",
     "commander": "13.1.0",
     "conf": "13.1.0",
     "execa": "9.5.2",
@@ -39,10 +37,7 @@
     "move-file": "3.1.0",
     "ora": "8.1.1",
     "tar": "7.4.3",
-    "tempy": "3.1.0",
-    "terminal-link": "3.0.0",
-    "ts-pattern": "5.6.0",
-    "zod": "3.24.1"
+    "tempy": "3.1.0"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",

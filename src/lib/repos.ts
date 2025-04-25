@@ -1,5 +1,3 @@
-import ora from 'ora';
-
 export type Repo = {
   url: string;
   defaultBranch: string;
