@@ -2,6 +2,7 @@ export type Repo = {
   url: string;
   defaultBranch: string;
 };
+export type Target = 'web' | 'native';
 
 export const replacableIndicator = '<branch>';
 
@@ -15,4 +16,3 @@ export const repos: Record<Target, Repo> = {
     defaultBranch: 'main',
   },
 } as const;
-export type Target = 'web' | 'native';

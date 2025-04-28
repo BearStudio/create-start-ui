@@ -60,15 +60,13 @@ export const downloadAndSaveRepoTarball = async ({
     spinner.fail(
       `Cannot download template from repository. Make sure that your connection is ok or that the specified branch exists (${repoUrl}).`,
     );
-    console.log('');
     process.exit(1);
   }
 
   const saveFileResult = await Future.fromPromise(writeFile(tmpFilePath, Buffer.from(responseResult.value)));
   if (saveFileResult.isError()) {
     debug('Cannot saved downloaded template file', saveFileResult.error);
-    spinner.fail('');
-    console.log(
+    spinner.fail(
       `Cannot download template from repository. Make sure that your connection is ok or that the specified branch exists (${repoUrl}).`,
     );
     process.exit(1);
@@ -88,8 +86,6 @@ export const extractTemplateFolder = async ({
   tarballPath: string;
   targetFolderPath: string;
 }) => {
-  let extractedFolderName = '';
-
   const extractResult = await Future.fromPromise(extract({ file: tarballPath, cwd: targetFolderPath }));
   if (extractResult.isError()) {
     debug('an error occurred while extracting the template archive.', extractResult.error);
@@ -109,10 +105,7 @@ export const extractTemplateFolder = async ({
     spinner.fail('An error occurred while extracting the template archive');
     process.exit(6);
   }
-  extractedFolderName = filesResult.value[0];
-  debug('Template extracted');
-
-  return extractedFolderName;
+  return filesResult.value[0];
 };
 
 /**
@@ -127,15 +120,14 @@ export const copyFilesToNewProject = async ({
 }) => {
   const moveResult = await Future.fromPromise(moveFile(fromFolderPath, toFolderPath));
 
-  if (moveResult.isOk()) {
-    return;
-  }
-
-  if (moveResult.isError()) {
-    debug('An error occurred while moving files.', moveResult.error);
-    spinner.fail(chalk.red('An error occurred while moving files.'));
-    process.exit(5);
-  }
-
-  debug('Moved files from', fromFolderPath, 'to', toFolderPath);
+  moveResult.match({
+    Ok: () => {
+      debug('Moved files from', fromFolderPath, 'to', toFolderPath);
+    },
+    Error: (moveResultError) => {
+      debug('An error occurred while moving files.', moveResultError);
+      spinner.fail(chalk.red('An error occurred while moving files.'));
+      process.exit(5);
+    },
+  });
 };

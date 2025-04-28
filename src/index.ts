@@ -39,7 +39,7 @@ global.isVerbose = options.verbose;
 // Ask for telemetry usage approval
 if (!config.has('allowTelemetry')) {
   console.log(
-    'create-start-ui is using telemetry to track bugs.\nCollected data is anonymous and help us to fix issues.',
+    'create-start-ui is using telemetry to track bugs.\nCollected data is anonymous and helps us to fix issues.',
   );
 
   const telemetryApproval = await confirm({
@@ -88,7 +88,7 @@ if (!options.skipGitInit) {
     spinner.succeed();
   } catch (error) {
     debug('Failed to initialize git repository', error);
-    spinner.fail();
+    spinner.warn('Unable to run git init, skipping');
   }
 }
 
