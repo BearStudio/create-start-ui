@@ -5,7 +5,7 @@ import { type Target, replacableIndicator, repos } from '@/lib/repos.js';
 import { spinner } from '@/lib/spinner.js';
 import { Future } from '@swan-io/boxed';
 import chalk from 'chalk';
-import { exists, readdir, writeFile } from 'fs-extra';
+import { copyFile, exists, readdir, writeFile } from 'fs-extra';
 import ky from 'ky';
 import { moveFile } from 'move-file';
 import { extract } from 'tar';
@@ -50,11 +50,7 @@ export const downloadAndSaveRepoTarball = async ({
   const targetInfos = repos[target];
   const repoUrl = targetInfos.url.replace(replacableIndicator, branch);
 
-  const responseResult = await Future.fromPromise(
-    ky(repoUrl, {
-      responseType: 'stream',
-    }).arrayBuffer(),
-  );
+  const responseResult = await Future.fromPromise(ky(repoUrl, { responseType: 'stream' }).arrayBuffer());
   if (responseResult.isError()) {
     debug('Cannot download template from repository', responseResult.error);
     spinner.fail(
@@ -63,6 +59,7 @@ export const downloadAndSaveRepoTarball = async ({
     process.exit(1);
   }
 
+  // [TODO]: prefer to use a standardized alternative instead of Buffer
   const saveFileResult = await Future.fromPromise(writeFile(tmpFilePath, Buffer.from(responseResult.value)));
   if (saveFileResult.isError()) {
     debug('Cannot saved downloaded template file', saveFileResult.error);
@@ -130,4 +127,19 @@ export const copyFilesToNewProject = async ({
       process.exit(5);
     },
   });
+};
+
+/**
+ * Utility to create the file associated
+ * to its .example sibling.
+ *
+ * `ensureExampleFile('.env.example')` will create `.env` file next to the .example one.
+ */
+export const ensureExampleFile = async (filePath: string) => {
+  // Make sure there is a file to copy
+
+  // get the path for the final file name (without .example)
+  const filePathWithoutExample = filePath.replace('.example', '');
+
+  return Future.fromPromise(copyFile(filePath, filePathWithoutExample));
 };

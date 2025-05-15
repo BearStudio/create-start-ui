@@ -33,12 +33,14 @@
     "commander": "13.1.0",
     "conf": "13.1.0",
     "execa": "9.5.2",
+    "fast-glob": "3.3.3",
     "fs-extra": "11.2.0",
     "ky": "1.7.4",
     "move-file": "3.1.0",
     "ora": "8.1.1",
     "tar": "7.4.3",
-    "tempy": "3.1.0"
+    "tempy": "3.1.0",
+    "ts-pattern": "5.7.0"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
