@@ -11,17 +11,9 @@ import { confirm } from '@inquirer/prompts';
 import { Future, Option } from '@swan-io/boxed';
 import chalk from 'chalk';
 import { $ } from 'execa';
-import fg from 'fast-glob';
-import fse from 'fs-extra';
 import { temporaryDirectoryTask } from 'tempy';
 
-import {
-  checkEnv,
-  copyFilesToNewProject,
-  downloadAndSaveRepoTarball,
-  ensureExampleFile,
-  extractTemplateFolder,
-} from '@/functions.js';
+import { checkEnv, copyFilesToNewProject, downloadAndSaveRepoTarball, extractTemplateFolder } from '@/functions.js';
 import { program } from '@/lib/cli.js';
 import { config } from '@/lib/conf.js';
 import { debug } from '@/lib/debug.js';
@@ -84,18 +76,6 @@ await temporaryDirectoryTask(async (tmpDir) => {
 
 spinner.succeed();
 process.chdir(outDirPath.value);
-
-// Initialize local config files
-const globResults = fg.globStream('**/*.example*', { dot: true, fs: fse });
-for await (const filePath of globResults) {
-  spinner.start(`Initializing ${filePath}`);
-  const copyResult = await ensureExampleFile(filePath as string);
-  if (copyResult.isError()) {
-    debug(`Failed to copy ${filePath}`, copyResult.getError());
-    spinner.warn(`Failed to initialize ${(filePath as string).replace('.example', '')}`);
-  }
-  spinner.succeed();
-}
 
 // Init git repository and add first commit
 if (!options.skipGitInit) {
