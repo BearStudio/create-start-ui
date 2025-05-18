@@ -19,6 +19,7 @@ import { config } from '@/lib/conf.js';
 import { debug } from '@/lib/debug.js';
 import { type Target, repos } from '@/lib/repos.js';
 import { spinner } from '@/lib/spinner.js';
+import { match } from 'ts-pattern';
 
 const parsedCliArgs = program.parse(process.argv);
 const outDirPath = Option.fromNullable(parsedCliArgs.args[0]);
@@ -30,6 +31,7 @@ if (outDirPath.isNone()) {
 const options = parsedCliArgs.opts();
 const type = Option.fromNullable(options.type).getOr('web') as Target;
 
+// [NOTE]
 // We make this option available in the global scope,
 // so debug() function can access it without the need to pass it
 // as a parameter everytime we want to use it
@@ -77,21 +79,6 @@ await temporaryDirectoryTask(async (tmpDir) => {
 spinner.succeed();
 process.chdir(outDirPath.value);
 
-// Init git repository and add first commit
-if (!options.skipGitInit) {
-  spinner.start('Initializing repository...');
-
-  try {
-    await $`git init`;
-    await $`git add .`;
-    await $`git commit -m "${'feat: initial commit'}"`;
-    spinner.succeed();
-  } catch (error) {
-    debug('Failed to initialize git repository', error);
-    spinner.warn('Unable to run git init, skipping');
-  }
-}
-
 if (!options.skipInstall) {
   spinner.start('Installing dependencies with pnpm...');
 
@@ -113,11 +100,30 @@ if (!options.skipInstall) {
   });
 }
 
+// Init git repository and add first commit
+if (!options.skipGitInit) {
+  spinner.start('Initializing repository...');
+
+  try {
+    await $`git init`;
+    await $`git add .`;
+    await $`git commit -m "${'feat: initial commit'}"`;
+    spinner.succeed();
+  } catch (error) {
+    debug('Failed to initialize git repository', error);
+    spinner.warn('Unable to run git init, skipping');
+  }
+}
+
 console.log('');
 console.log(chalk.green('✅ Project created!'));
 console.log(
   `➡️  Run \`${chalk.grey(`cd ${outDirPath.value}`)}\` and follow getting started instructions in the README.md`,
 );
-if (type === 'web') {
-  console.log('ℹ️  Check https://docs.web.start-ui.com/ for additional guides or details about 🚀 Start UI [web]');
-}
+
+// Once the repo template has been copied into
+// the disired folder, run target specific scripts
+match(type)
+  .with('web', () => import('@/target/web/index.js'))
+  .with('native', () => import('@/target/native/index.js'))
+  .exhaustive();
