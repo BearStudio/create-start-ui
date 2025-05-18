@@ -19,6 +19,8 @@ import { config } from '@/lib/conf.js';
 import { debug } from '@/lib/debug.js';
 import { type Target, repos } from '@/lib/repos.js';
 import { spinner } from '@/lib/spinner.js';
+import native from '@/target/native/index.js';
+import web from '@/target/web/index.js';
 import { match } from 'ts-pattern';
 
 const parsedCliArgs = program.parse(process.argv);
@@ -123,7 +125,4 @@ console.log(
 
 // Once the repo template has been copied into
 // the disired folder, run target specific scripts
-match(type)
-  .with('web', () => import('@/target/web/index.js'))
-  .with('native', () => import('@/target/native/index.js'))
-  .exhaustive();
+match(type).with('web', web).with('native', native).exhaustive();
