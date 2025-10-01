@@ -109,7 +109,7 @@ if (!options.skipGitInit) {
   try {
     await $`git init`;
     await $`git add .`;
-    await $`git commit -m "${'feat: initial commit'}"`;
+    await $`git commit -m ${'feat: initial commit'}`;
     spinner.succeed();
   } catch (error) {
     debug('Failed to initialize git repository', error);

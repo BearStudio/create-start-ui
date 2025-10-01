@@ -10,6 +10,7 @@
 
     "strict": true,
     "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
 
     "moduleResolution": "NodeNext",
     "module": "NodeNext",

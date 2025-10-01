@@ -1,7 +1,7 @@
 import Conf from 'conf';
 
 type CliConfig = {
-  allowTelemetry?: boolean;
+  allowTelemetry?: boolean | undefined;
 };
 
 export const config = new Conf<CliConfig>({
