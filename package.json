@@ -1,7 +1,7 @@
 {
   "name": "create-start-ui",
   "description": "Scaffold a new Start-UI project",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "license": "MIT",
   "type": "module",
   "bin": {
