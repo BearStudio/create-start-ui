@@ -3,9 +3,8 @@ import { cwd } from 'node:process';
 
 import { Future } from '@swan-io/boxed';
 import chalk from 'chalk';
-import { copyFile, exists, readdir, writeFile } from 'fs-extra';
+import { copyFile, exists, move, readdir, writeFile } from 'fs-extra';
 import ky from 'ky';
-import { moveFile } from 'move-file';
 import { extract } from 'tar';
 import { temporaryFile } from 'tempy';
 
@@ -117,7 +116,7 @@ export const copyFilesToNewProject = async ({
   fromFolderPath: string;
   toFolderPath: string;
 }) => {
-  const moveResult = await Future.fromPromise(moveFile(fromFolderPath, toFolderPath));
+  const moveResult = await Future.fromPromise(move(fromFolderPath, toFolderPath));
 
   moveResult.match({
     Ok: () => {
