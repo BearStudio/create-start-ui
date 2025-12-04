@@ -82,28 +82,6 @@ await temporaryDirectoryTask(async (tmpDir) => {
 spinner.succeed('Project created');
 process.chdir(outDirPath.value);
 
-if (!options.skipInstall) {
-  spinner.start('Installing dependencies with pnpm...');
-
-  // Make sure pnpm is installed before trying anything
-  const checkPnpmCliResult = await Future.fromPromise($`pnpm -v`);
-  await checkPnpmCliResult.match({
-    Ok: async () => {
-      const pnpmInstallExecutionResult = await Future.fromPromise($`pnpm install`);
-      if (pnpmInstallExecutionResult.isError()) {
-        captureException(pnpmInstallExecutionResult.error);
-        debug('pnpm install failed', pnpmInstallExecutionResult.error);
-        spinner.warn('Something went wrong while installing dependencies with pnpm.');
-      }
-      spinner.succeed('Dependencies installed');
-    },
-    Error: (error) => {
-      debug('pnpm not detected', error);
-      spinner.warn(chalk.yellow('Unable to find pnpm. You will need to install dependencies yourself.'));
-    },
-  });
-}
-
 // Init git repository and add first commit
 if (!options.skipGitInit) {
   spinner.start('Initializing repository...');
@@ -118,6 +96,29 @@ if (!options.skipGitInit) {
     debug('Failed to initialize git repository', error);
     spinner.warn('Unable to run git init, skipping');
   }
+}
+
+if (!options.skipInstall) {
+  spinner.start('Installing dependencies with pnpm...');
+
+  // Make sure pnpm is installed before trying anything
+  const checkPnpmCliResult = await Future.fromPromise($`pnpm -v`);
+  await checkPnpmCliResult.match({
+    Ok: async () => {
+      const pnpmInstallExecutionResult = await Future.fromPromise($`pnpm install`);
+      if (pnpmInstallExecutionResult.isError()) {
+        captureException(pnpmInstallExecutionResult.error);
+        debug('pnpm install failed', pnpmInstallExecutionResult.error);
+        spinner.warn('Something went wrong while installing dependencies with pnpm.');
+      } else {
+        spinner.succeed('Dependencies installed');
+      }
+    },
+    Error: (error) => {
+      debug('pnpm not detected', error);
+      spinner.warn(chalk.yellow('Unable to find pnpm. You will need to install dependencies yourself.'));
+    },
+  });
 }
 
 console.log('');
