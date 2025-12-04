@@ -19,6 +19,7 @@ import { program } from '@/lib/cli.js';
 import { config } from '@/lib/conf.js';
 import { debug } from '@/lib/debug.js';
 import { type Target, repos } from '@/lib/repos.js';
+import { captureException } from '@/lib/sentry.js';
 import { spinner } from '@/lib/spinner.js';
 import native from '@/target/native/index.js';
 import web from '@/target/web/index.js';
@@ -59,7 +60,7 @@ if (!config.has('allowTelemetry')) {
 await checkEnv({ outDirPath: outDirPath.value });
 
 // Download template zip file from target repo
-spinner.start(`Creating template into ${path.join(cwd(), outDirPath.value)}`);
+spinner.start(`Creating project into ${path.join(cwd(), outDirPath.value)}`);
 const tempFilePath = await downloadAndSaveRepoTarball({
   target: type,
   branch: options.branch ?? repos[type].defaultBranch,
@@ -78,7 +79,7 @@ await temporaryDirectoryTask(async (tmpDir) => {
   });
 });
 
-spinner.succeed();
+spinner.succeed('Project created');
 process.chdir(outDirPath.value);
 
 if (!options.skipInstall) {
@@ -90,10 +91,11 @@ if (!options.skipInstall) {
     Ok: async () => {
       const pnpmInstallExecutionResult = await Future.fromPromise($`pnpm install`);
       if (pnpmInstallExecutionResult.isError()) {
+        captureException(pnpmInstallExecutionResult.error);
         debug('pnpm install failed', pnpmInstallExecutionResult.error);
         spinner.warn('Something went wrong while installing dependencies with pnpm.');
       }
-      spinner.succeed('Installing dependencies with pnpm...');
+      spinner.succeed('Dependencies installed');
     },
     Error: (error) => {
       debug('pnpm not detected', error);
@@ -110,8 +112,9 @@ if (!options.skipGitInit) {
     await $`git init`;
     await $`git add .`;
     await $`git commit -m ${'feat: initial commit'}`;
-    spinner.succeed();
+    spinner.succeed('Repository initialized');
   } catch (error) {
+    captureException(error);
     debug('Failed to initialize git repository', error);
     spinner.warn('Unable to run git init, skipping');
   }
@@ -120,7 +123,7 @@ if (!options.skipGitInit) {
 console.log('');
 console.log(chalk.green('✅ Project created!'));
 console.log(
-  `➡️  Run \`${chalk.grey(`cd ${outDirPath.value}`)}\` and follow getting started instructions in the README.md`,
+  `➡️ Run \`${chalk.grey(`cd ${outDirPath.value}`)}\` and follow getting started instructions in the README.md`,
 );
 
 // Once the repo template has been copied into

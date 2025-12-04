@@ -17,3 +17,8 @@ export const sentry = Sentry.init({
     return null;
   },
 });
+
+export const captureException = (error: unknown) => {
+  if (!config.get('allowTelemetry')) return;
+  sentry?.captureException(error);
+};
