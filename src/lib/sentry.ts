@@ -1,5 +1,7 @@
-import { config } from '@/lib/conf.js';
 import * as Sentry from '@sentry/node';
+
+import { config } from '@/lib/conf.js';
+
 import packageJson from '../../package.json' with { type: 'json' };
 
 export const sentry = Sentry.init({

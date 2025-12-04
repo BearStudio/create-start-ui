@@ -1,5 +1,6 @@
-import type { Target } from '@/lib/repos.js';
 import { Command } from 'commander';
+
+import type { Target } from '@/lib/repos.js';
 
 import packageJson from '../../package.json' with { type: 'json' };
 

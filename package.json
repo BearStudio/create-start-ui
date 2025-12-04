@@ -12,12 +12,19 @@
     "email": "renan.decamps@gmail.com",
     "url": "https://github.com/decampsrenan"
   },
-  "keywords": ["create-start-ui", "start-ui", "start-ui-web", "start-ui-native"],
+  "keywords": [
+    "create-start-ui",
+    "start-ui",
+    "start-ui-web",
+    "start-ui-native"
+  ],
   "bugs": {
     "url": "https://github.com/bearstudio/create-start-ui/issues"
   },
   "homepage": "https://github.com/bearstudio/create-start-ui#readme",
-  "files": ["build"],
+  "files": [
+    "build"
+  ],
   "scripts": {
     "check": "biome check",
     "dev": "pnpm link-cli && pnpm build --watch",
@@ -42,7 +49,7 @@
     "ts-pattern": "5.7.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.9.4",
+    "@biomejs/biome": "2.3.8",
     "@commander-js/extra-typings": "13.1.0",
     "@types/fs-extra": "11.0.4",
     "@types/node": "20.8.2",
@@ -54,6 +61,9 @@
     "node": ">=20"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["@biomejs/biome", "lefthook"]
+    "onlyBuiltDependencies": [
+      "@biomejs/biome",
+      "lefthook"
+    ]
   }
 }

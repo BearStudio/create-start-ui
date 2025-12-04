@@ -12,6 +12,7 @@ import { Future, Option } from '@swan-io/boxed';
 import chalk from 'chalk';
 import { $ } from 'execa';
 import { temporaryDirectoryTask } from 'tempy';
+import { match } from 'ts-pattern';
 
 import { checkEnv, copyFilesToNewProject, downloadAndSaveRepoTarball, extractTemplateFolder } from '@/functions.js';
 import { program } from '@/lib/cli.js';
@@ -21,7 +22,6 @@ import { type Target, repos } from '@/lib/repos.js';
 import { spinner } from '@/lib/spinner.js';
 import native from '@/target/native/index.js';
 import web from '@/target/web/index.js';
-import { match } from 'ts-pattern';
 
 const parsedCliArgs = program.parse(process.argv);
 const outDirPath = Option.fromNullable(parsedCliArgs.args[0]);

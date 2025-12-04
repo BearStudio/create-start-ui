@@ -1,8 +1,6 @@
 import path from 'node:path';
 import { cwd } from 'node:process';
-import { debug } from '@/lib/debug.js';
-import { type Target, replacableIndicator, repos } from '@/lib/repos.js';
-import { spinner } from '@/lib/spinner.js';
+
 import { Future } from '@swan-io/boxed';
 import chalk from 'chalk';
 import { copyFile, exists, readdir, writeFile } from 'fs-extra';
@@ -10,6 +8,10 @@ import ky from 'ky';
 import { moveFile } from 'move-file';
 import { extract } from 'tar';
 import { temporaryFile } from 'tempy';
+
+import { debug } from '@/lib/debug.js';
+import { type Target, replacableIndicator, repos } from '@/lib/repos.js';
+import { spinner } from '@/lib/spinner.js';
 
 /**
  * Make sure you can create a start-ui project with the specified cli arguments
@@ -39,13 +41,7 @@ export const checkEnv = async ({ outDirPath }: { outDirPath: string }) => {
  * Download .tar.gz file from specified branch on the github repository
  * @returns .tar.gz file path where it was downloaded
  */
-export const downloadAndSaveRepoTarball = async ({
-  target,
-  branch,
-}: {
-  target: Target;
-  branch: string;
-}) => {
+export const downloadAndSaveRepoTarball = async ({ target, branch }: { target: Target; branch: string }) => {
   const tmpFilePath = temporaryFile();
   const targetInfos = repos[target];
   const repoUrl = targetInfos.url.replace(replacableIndicator, branch);
