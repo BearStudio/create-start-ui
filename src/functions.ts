@@ -55,8 +55,7 @@ export const downloadAndSaveRepoTarball = async ({ target, branch }: { target: T
     process.exit(1);
   }
 
-  // [TODO]: prefer to use a standardized alternative instead of Buffer
-  const saveFileResult = await Future.fromPromise(writeFile(tmpFilePath, Buffer.from(responseResult.value)));
+  const saveFileResult = await Future.fromPromise(writeFile(tmpFilePath, new Uint8Array(responseResult.value)));
   if (saveFileResult.isError()) {
     debug('Cannot saved downloaded template file', saveFileResult.error);
     spinner.fail(
