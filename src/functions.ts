@@ -1,15 +1,17 @@
 import path from 'node:path';
 import { cwd } from 'node:process';
-import { debug } from '@/lib/debug.js';
-import { type Target, replacableIndicator, repos } from '@/lib/repos.js';
-import { spinner } from '@/lib/spinner.js';
+
 import { Future } from '@swan-io/boxed';
 import chalk from 'chalk';
-import { copyFile, exists, readdir, writeFile } from 'fs-extra';
+import { copyFile, exists, move, readdir, writeFile } from 'fs-extra';
 import ky from 'ky';
-import { moveFile } from 'move-file';
 import { extract } from 'tar';
 import { temporaryFile } from 'tempy';
+
+import { debug } from '@/lib/debug.js';
+import { type Target, replacableIndicator, repos } from '@/lib/repos.js';
+import { captureException } from '@/lib/sentry.js';
+import { spinner } from '@/lib/spinner.js';
 
 /**
  * Make sure you can create a start-ui project with the specified cli arguments
@@ -18,6 +20,7 @@ import { temporaryFile } from 'tempy';
 export const checkEnv = async ({ outDirPath }: { outDirPath: string }) => {
   const checkDirExistResult = await Future.fromPromise(exists(outDirPath));
   if (checkDirExistResult.isError()) {
+    captureException(checkDirExistResult.error);
     spinner.fail('Cannot check if the folder exists. Make sure you have sufficient rights on your system.');
     process.exit(7);
   }
@@ -39,19 +42,14 @@ export const checkEnv = async ({ outDirPath }: { outDirPath: string }) => {
  * Download .tar.gz file from specified branch on the github repository
  * @returns .tar.gz file path where it was downloaded
  */
-export const downloadAndSaveRepoTarball = async ({
-  target,
-  branch,
-}: {
-  target: Target;
-  branch: string;
-}) => {
+export const downloadAndSaveRepoTarball = async ({ target, branch }: { target: Target; branch: string }) => {
   const tmpFilePath = temporaryFile();
   const targetInfos = repos[target];
   const repoUrl = targetInfos.url.replace(replacableIndicator, branch);
 
   const responseResult = await Future.fromPromise(ky(repoUrl, { responseType: 'stream' }).arrayBuffer());
   if (responseResult.isError()) {
+    captureException(responseResult.error);
     debug('Cannot download template from repository', responseResult.error);
     spinner.fail(
       `Cannot download template from repository. Make sure that your connection is ok or that the specified branch exists (${repoUrl}).`,
@@ -59,9 +57,9 @@ export const downloadAndSaveRepoTarball = async ({
     process.exit(1);
   }
 
-  // [TODO]: prefer to use a standardized alternative instead of Buffer
-  const saveFileResult = await Future.fromPromise(writeFile(tmpFilePath, Buffer.from(responseResult.value)));
+  const saveFileResult = await Future.fromPromise(writeFile(tmpFilePath, new Uint8Array(responseResult.value)));
   if (saveFileResult.isError()) {
+    captureException(saveFileResult.error);
     debug('Cannot saved downloaded template file', saveFileResult.error);
     spinner.fail(
       `Cannot download template from repository. Make sure that your connection is ok or that the specified branch exists (${repoUrl}).`,
@@ -85,6 +83,7 @@ export const extractTemplateFolder = async ({
 }) => {
   const extractResult = await Future.fromPromise(extract({ file: tarballPath, cwd: targetFolderPath }));
   if (extractResult.isError()) {
+    captureException(extractResult.error);
     debug('an error occurred while extracting the template archive.', extractResult.error);
     spinner.fail(chalk.red('An error occurred while extracting the template archive'));
     process.exit(2);
@@ -92,12 +91,14 @@ export const extractTemplateFolder = async ({
 
   const filesResult = await Future.fromPromise(readdir(targetFolderPath));
   if (filesResult.isError()) {
+    captureException(filesResult.error);
     debug('An error occurred while reading the extracting files', filesResult.error);
     spinner.fail('An error occurred while extracting the template archive');
     process.exit(3);
   }
 
   if (!filesResult.value[0]) {
+    captureException(new Error('An error occurred while reading folder name', { cause: filesResult.value }));
     debug('An error occurred while reading folder name', filesResult.value.length);
     spinner.fail('An error occurred while extracting the template archive');
     process.exit(6);
@@ -115,13 +116,14 @@ export const copyFilesToNewProject = async ({
   fromFolderPath: string;
   toFolderPath: string;
 }) => {
-  const moveResult = await Future.fromPromise(moveFile(fromFolderPath, toFolderPath));
+  const moveResult = await Future.fromPromise(move(fromFolderPath, toFolderPath));
 
   moveResult.match({
     Ok: () => {
       debug('Moved files from', fromFolderPath, 'to', toFolderPath);
     },
     Error: (moveResultError) => {
+      captureException(moveResultError);
       debug('An error occurred while moving files.', moveResultError);
       spinner.fail(chalk.red('An error occurred while moving files.'));
       process.exit(5);

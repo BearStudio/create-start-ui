@@ -1,7 +1,7 @@
 {
   "name": "create-start-ui",
   "description": "Scaffold a new Start-UI project",
-  "version": "2.0.3",
+  "version": "2.0.4-0",
   "license": "MIT",
   "type": "module",
   "bin": {
@@ -12,12 +12,19 @@
     "email": "renan.decamps@gmail.com",
     "url": "https://github.com/decampsrenan"
   },
-  "keywords": ["create-start-ui", "start-ui", "start-ui-web", "start-ui-native"],
+  "keywords": [
+    "create-start-ui",
+    "start-ui",
+    "start-ui-web",
+    "start-ui-native"
+  ],
   "bugs": {
     "url": "https://github.com/bearstudio/create-start-ui/issues"
   },
   "homepage": "https://github.com/bearstudio/create-start-ui#readme",
-  "files": ["build"],
+  "files": [
+    "build"
+  ],
   "scripts": {
     "check": "biome check",
     "dev": "pnpm link-cli && pnpm build --watch",
@@ -35,14 +42,13 @@
     "execa": "9.5.2",
     "fs-extra": "11.2.0",
     "ky": "1.7.4",
-    "move-file": "3.1.0",
     "ora": "8.1.1",
     "tar": "7.4.3",
     "tempy": "3.1.0",
     "ts-pattern": "5.7.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.9.4",
+    "@biomejs/biome": "2.3.8",
     "@commander-js/extra-typings": "13.1.0",
     "@types/fs-extra": "11.0.4",
     "@types/node": "20.8.2",
@@ -54,6 +60,9 @@
     "node": ">=20"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["@biomejs/biome", "lefthook"]
+    "onlyBuiltDependencies": [
+      "@biomejs/biome",
+      "lefthook"
+    ]
   }
 }
