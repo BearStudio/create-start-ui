@@ -39,7 +39,7 @@ const validNamePattern = /^[a-zA-Z0-9_@][a-zA-Z0-9._-]*$/;
 if (!validNamePattern.test(projectName)) {
   console.log();
   console.log(chalk.red(`Invalid project name: ${chalk.bold(projectName)}`));
-  console.log('Project name must start with a letter, digit, _ or @, and contain only letters, digits, ., _ or -.');
+  console.log('Project name must be a valid folder name.');
   console.log();
   process.exit(1);
 }
