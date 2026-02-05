@@ -26,7 +26,7 @@
     "dist"
   ],
   "scripts": {
-    "check": "biome check",
+    "lint": "biome check",
     "dev": "pnpm link-cli && pnpm build --watch",
     "link-cli": "(pnpm uninstall --global create-start-ui || true) && pnpm link --global",
     "build": "ncc build src/index.ts -o dist",
