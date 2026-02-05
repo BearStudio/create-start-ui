@@ -1,18 +1,23 @@
-export type Repo = {
-  url: string;
+export const targets = ['web', 'native'] as const;
+export type Target = (typeof targets)[number];
+
+type Repo = {
+  baseUrl: string;
   defaultBranch: string;
 };
-export type Target = 'web' | 'native';
 
-export const replacableIndicator = '<branch>';
-
-export const repos: Record<Target, Repo> = {
+const repos: Record<Target, Repo> = {
   web: {
-    url: `https://github.com/BearStudio/start-ui-web/archive/refs/heads/${replacableIndicator}.tar.gz`,
+    baseUrl: 'https://github.com/BearStudio/start-ui-web/archive/refs/heads',
     defaultBranch: 'main',
   },
   native: {
-    url: `https://github.com/BearStudio/start-ui-native/archive/refs/heads/${replacableIndicator}.tar.gz`,
+    baseUrl: 'https://github.com/BearStudio/start-ui-native/archive/refs/heads',
     defaultBranch: 'main',
   },
-} as const;
+};
+
+export const getDefaultBranch = (target: Target): string => repos[target].defaultBranch;
+
+export const getRepoUrl = (target: Target, branch: string): string =>
+  `${repos[target].baseUrl}/${encodeURIComponent(branch)}.tar.gz`;

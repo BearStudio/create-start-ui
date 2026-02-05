@@ -1,14 +1,16 @@
-import chalk from 'chalk';
+import { styleText } from 'node:util';
 
-/**
- * function used to log debug message only if --verbose flag is used
- * Act as a wrapper around console.log
- */
+let verbose = false;
+
+export const setVerbose = (value: boolean) => {
+  verbose = value;
+};
+
 export const debug = (...args: unknown[]) => {
-  if (global.isVerbose) {
+  if (verbose) {
     console.debug(
-      `\n${chalk.magenta('DEBUG')}\n`,
-      ...args.flatMap((valueToDisplay) => [chalk.magenta('|>'), valueToDisplay, '\n']),
+      `\n${styleText('magenta', 'DEBUG')}\n`,
+      ...args.flatMap((valueToDisplay) => [styleText('magenta', '|>'), valueToDisplay, '\n']),
     );
   }
 };
