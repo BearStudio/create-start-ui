@@ -1,6 +1,5 @@
-import { styleText } from 'node:util';
-
 import { Future } from '@swan-io/boxed';
+import chalk from 'chalk';
 import { move, readdir } from 'fs-extra';
 import { extract } from 'tar';
 
@@ -23,7 +22,7 @@ export const extractTemplateFolder = async ({
   if (extractResult.isError()) {
     captureException(extractResult.error);
     debug('an error occurred while extracting the template archive.', extractResult.error);
-    spinner.fail(styleText('red', 'An error occurred while extracting the template archive'));
+    spinner.fail(chalk.red('An error occurred while extracting the template archive'));
     process.exit(2);
   }
 
@@ -63,7 +62,7 @@ export const copyFilesToNewProject = async ({
     Error: (moveResultError) => {
       captureException(moveResultError);
       debug('An error occurred while moving files.', moveResultError);
-      spinner.fail(styleText('red', 'An error occurred while moving files.'));
+      spinner.fail(chalk.red('An error occurred while moving files.'));
       process.exit(5);
     },
   });

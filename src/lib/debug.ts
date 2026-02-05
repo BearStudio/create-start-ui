@@ -1,4 +1,4 @@
-import { styleText } from 'node:util';
+import chalk from 'chalk';
 
 let verbose = false;
 
@@ -9,8 +9,8 @@ export const setVerbose = (value: boolean) => {
 export const debug = (...args: unknown[]) => {
   if (verbose) {
     console.debug(
-      `\n${styleText('magenta', 'DEBUG')}\n`,
-      ...args.flatMap((valueToDisplay) => [styleText('magenta', '|>'), valueToDisplay, '\n']),
+      `\n${chalk.magenta('DEBUG')}\n`,
+      ...args.flatMap((valueToDisplay) => [chalk.magenta('|>'), valueToDisplay, '\n']),
     );
   }
 };

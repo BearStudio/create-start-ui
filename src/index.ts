@@ -6,10 +6,10 @@ import '@/lib/sentry.js';
 
 import path from 'node:path';
 import { cwd } from 'node:process';
-import { styleText } from 'node:util';
 
 import { confirm, select } from '@inquirer/prompts';
 import { Future, Option } from '@swan-io/boxed';
+import chalk from 'chalk';
 import { $ } from 'execa';
 import { temporaryDirectoryTask } from 'tempy';
 import { match } from 'ts-pattern';
@@ -38,7 +38,7 @@ const projectName = outDirPath.value;
 const validNamePattern = /^[a-zA-Z0-9_@][a-zA-Z0-9._-]*$/;
 if (!validNamePattern.test(projectName)) {
   console.log();
-  console.log(styleText('red', `Invalid project name: ${styleText('bold', projectName)}`));
+  console.log(chalk.red(`Invalid project name: ${chalk.bold(projectName)}`));
   console.log('Project name must be a valid folder name.');
   console.log();
   process.exit(1);
@@ -134,16 +134,14 @@ if (!options.skipInstall) {
     },
     Error: (error) => {
       debug('pnpm not detected', error);
-      spinner.warn(styleText('yellow', 'Unable to find pnpm. You will need to install dependencies yourself.'));
+      spinner.warn(chalk.yellow('Unable to find pnpm. You will need to install dependencies yourself.'));
     },
   });
 }
 
 console.log('');
-console.log(styleText('green', 'Project created successfully!'));
-console.log(
-  `Run ${styleText('cyan', `cd ${outDirPath.value}`)} and follow getting started instructions in the README.md`,
-);
+console.log(chalk.green('Project created successfully!'));
+console.log(`Run ${chalk.cyan(`cd ${outDirPath.value}`)} and follow getting started instructions in the README.md`);
 
 // Once the repo template has been copied into
 // the desired folder, run target specific scripts

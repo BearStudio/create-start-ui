@@ -1,8 +1,8 @@
 import path from 'node:path';
 import { cwd } from 'node:process';
-import { styleText } from 'node:util';
 
 import { Future } from '@swan-io/boxed';
+import chalk from 'chalk';
 import { exists } from 'fs-extra';
 
 import { captureException } from '@/lib/sentry.js';
@@ -27,7 +27,7 @@ export const checkEnv = async ({ outDirPath }: { outDirPath: string }) => {
   }
 
   console.log();
-  console.log(`This folder already exists: ${styleText(['yellow', 'underline'], path.join(cwd(), outDirPath))}`);
+  console.log(`This folder already exists: ${chalk.yellow.underline(path.join(cwd(), outDirPath))}`);
   console.log('Try removing or renaming it first.');
   console.log();
   process.exit(2);
