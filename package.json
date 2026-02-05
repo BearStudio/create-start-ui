@@ -31,7 +31,8 @@
     "dev": "pnpm link-cli && pnpm build --watch",
     "link-cli": "(pnpm uninstall --global create-start-ui || true) && pnpm link --global",
     "build": "ncc build src/index.ts -o dist",
-    "test": "true"
+    "test": "true",
+    "prepublishOnly": "pnpm build"
   },
   "dependencies": {
     "@inquirer/prompts": "7.5.0",
@@ -57,7 +58,7 @@
     "typescript": "5.7.3"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
