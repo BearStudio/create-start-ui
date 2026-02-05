@@ -8,8 +8,12 @@ const isTarget = (value: string): value is Target => {
   return ['web', 'native'].includes(value);
 };
 
-const parseTarget = (value: string) => {
-  return isTarget(value) ? value : null;
+const parseTarget = (value: string): Target => {
+  if (!isTarget(value)) {
+    console.error(`Invalid project type: "${value}". Must be "web" or "native".`);
+    process.exit(1);
+  }
+  return value;
 };
 
 export const program = new Command()

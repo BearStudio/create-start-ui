@@ -7,38 +7,57 @@ import '@/lib/sentry.js';
 import path from 'node:path';
 import { cwd } from 'node:process';
 
-import { confirm } from '@inquirer/prompts';
+import { confirm, select } from '@inquirer/prompts';
 import { Future, Option } from '@swan-io/boxed';
 import chalk from 'chalk';
 import { $ } from 'execa';
 import { temporaryDirectoryTask } from 'tempy';
 import { match } from 'ts-pattern';
 
-import { checkEnv, copyFilesToNewProject, downloadAndSaveRepoTarball, extractTemplateFolder } from '@/functions.js';
 import { program } from '@/lib/cli.js';
 import { config } from '@/lib/conf.js';
-import { debug } from '@/lib/debug.js';
-import { type Target, repos } from '@/lib/repos.js';
+import { debug, setVerbose } from '@/lib/debug.js';
+import { downloadAndSaveRepoTarball } from '@/lib/download.js';
+import { checkEnv } from '@/lib/env.js';
+import { copyFilesToNewProject, extractTemplateFolder } from '@/lib/extract.js';
+import { type Target, getDefaultBranch } from '@/lib/repos.js';
 import { captureException } from '@/lib/sentry.js';
 import { spinner } from '@/lib/spinner.js';
-import native from '@/target/native/index.js';
-import web from '@/target/web/index.js';
+import { runNativePostSetup } from '@/target/native/index.js';
+import { runWebPostSetup } from '@/target/web/index.js';
 
 const parsedCliArgs = program.parse(process.argv);
 const outDirPath = Option.fromNullable(parsedCliArgs.args[0]);
 if (outDirPath.isNone()) {
   program.outputHelp();
-  process.exit();
+  process.exit(1);
+}
+
+const projectName = outDirPath.value;
+// Project name is used as a folder name, so we reject characters like /
+const validNamePattern = /^[a-zA-Z0-9_@][a-zA-Z0-9._-]*$/;
+if (!validNamePattern.test(projectName)) {
+  console.log();
+  console.log(chalk.red(`Invalid project name: ${chalk.bold(projectName)}`));
+  console.log('Project name must start with a letter, digit, _ or @, and contain only letters, digits, ., _ or -.');
+  console.log();
+  process.exit(1);
 }
 
 const options = parsedCliArgs.opts();
-const type = Option.fromNullable(options.type).getOr('web') as Target;
+const type: Target = await Option.fromNullable(options.type).match({
+  Some: (value) => value,
+  None: () =>
+    select<Target>({
+      message: 'What type of project do you want to create?',
+      choices: [
+        { name: 'Web', value: 'web' },
+        { name: 'Native', value: 'native' },
+      ],
+    }),
+});
 
-// [NOTE]
-// We make this option available in the global scope,
-// so debug() function can access it without the need to pass it
-// as a parameter everytime we want to use it
-global.isVerbose = options.verbose;
+setVerbose(options.verbose);
 
 // If this is the first time launching the cli
 // Ask for telemetry usage approval
@@ -59,13 +78,16 @@ if (!config.has('allowTelemetry')) {
 // as the outDirPath
 await checkEnv({ outDirPath: outDirPath.value });
 
-// Download template zip file from target repo
-spinner.start(`Creating project into ${path.join(cwd(), outDirPath.value)}`);
+// Download template tarball from target repo
+spinner.start('Downloading template...');
 const tempFilePath = await downloadAndSaveRepoTarball({
   target: type,
-  branch: options.branch ?? repos[type].defaultBranch,
+  branch: options.branch ?? getDefaultBranch(type),
 });
+spinner.succeed('Template downloaded');
 
+// Extract and copy files to project folder
+spinner.start(`Creating project in ${path.join(cwd(), outDirPath.value)}`);
 await temporaryDirectoryTask(async (tmpDir) => {
   const extractedFolderName = await extractTemplateFolder({
     tarballPath: tempFilePath,
@@ -78,7 +100,6 @@ await temporaryDirectoryTask(async (tmpDir) => {
     toFolderPath: outDirPath.value,
   });
 });
-
 spinner.succeed('Project created');
 process.chdir(outDirPath.value);
 
@@ -122,11 +143,9 @@ if (!options.skipInstall) {
 }
 
 console.log('');
-console.log(chalk.green('✅ Project created!'));
-console.log(
-  `➡️ Run \`${chalk.grey(`cd ${outDirPath.value}`)}\` and follow getting started instructions in the README.md`,
-);
+console.log(chalk.green('Project created successfully!'));
+console.log(`Run ${chalk.cyan(`cd ${outDirPath.value}`)} and follow getting started instructions in the README.md`);
 
 // Once the repo template has been copied into
-// the disired folder, run target specific scripts
-match(type).with('web', web).with('native', native).exhaustive();
+// the desired folder, run target specific scripts
+match(type).with('web', runWebPostSetup).with('native', runNativePostSetup).exhaustive();

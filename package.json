@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/bearstudio/create-start-ui#readme",
   "files": [
-    "build"
+    "dist"
   ],
   "scripts": {
     "check": "biome check",
