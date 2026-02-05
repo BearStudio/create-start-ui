@@ -20,7 +20,7 @@ import { debug, setVerbose } from '@/lib/debug.js';
 import { downloadAndSaveRepoTarball } from '@/lib/download.js';
 import { checkEnv } from '@/lib/env.js';
 import { copyFilesToNewProject, extractTemplateFolder } from '@/lib/extract.js';
-import { type Target, getDefaultBranch } from '@/lib/repos.js';
+import { type Target, getDefaultBranch, targets } from '@/lib/repos.js';
 import { captureException } from '@/lib/sentry.js';
 import { spinner } from '@/lib/spinner.js';
 import { runNativePostSetup } from '@/target/native/index.js';
@@ -50,10 +50,7 @@ const type: Target = await Option.fromNullable(options.type).match({
   None: () =>
     select<Target>({
       message: 'What type of project do you want to create?',
-      choices: [
-        { name: 'Web', value: 'web' },
-        { name: 'Native', value: 'native' },
-      ],
+      choices: targets.map((t) => ({ name: t.charAt(0).toUpperCase() + t.slice(1), value: t })),
     }),
 });
 

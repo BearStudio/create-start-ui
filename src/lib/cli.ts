@@ -1,16 +1,16 @@
 import { Command } from 'commander';
 
-import type { Target } from '@/lib/repos.js';
+import { type Target, targets } from '@/lib/repos.js';
 
 import packageJson from '../../package.json' with { type: 'json' };
 
 const isTarget = (value: string): value is Target => {
-  return ['web', 'native'].includes(value);
+  return (targets as readonly string[]).includes(value);
 };
 
 const parseTarget = (value: string): Target => {
   if (!isTarget(value)) {
-    console.error(`Invalid project type: "${value}". Must be "web" or "native".`);
+    console.error(`Invalid project type: "${value}". Must be ${targets.map((t) => `"${t}"`).join(' or ')}.`);
     process.exit(1);
   }
   return value;

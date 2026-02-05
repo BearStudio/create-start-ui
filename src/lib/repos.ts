@@ -1,4 +1,5 @@
-export type Target = 'web' | 'native';
+export const targets = ['web', 'native'] as const;
+export type Target = (typeof targets)[number];
 
 type Repo = {
   baseUrl: string;
